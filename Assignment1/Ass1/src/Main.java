@@ -33,7 +33,7 @@ public class Main {
         System.out.println("\nThe 3x3x3 array is:");
         printArray(array);
 
-        System.out.println("\nEnter Page (i), Row (j), and Column (k) indices (0-based) to retrieve the value:");
+        System.out.println("\nEnter Page (i), Row (j), and Column (k) indices (0-based ) to retrieve the value:");
         int row = scanner.nextInt();
         int col = scanner.nextInt();
         int page = scanner.nextInt();
