@@ -6,7 +6,7 @@ public class Main {
         int[][][] array = new int[3][3][3];
         int[] linearArray = new int[27];
 
-        System.out.println("Choose the input method:");
+        System.out.println("Choose the input method:" );
         System.out.println("1: Row-wise measure");
         System.out.println("2: Column-wise measure");
         System.out.println("3: Page-wise measure");
