@@ -6,7 +6,7 @@ public class Main {
         int[][][] array = new int[3][3][3];
         int[] linearArray = new int[27];
 
-        System.out.println("Choose the input method:" );
+        System.out.println("Choose the input method:");
         System.out.println("1: Row-wise measure");
         System.out.println("2: Column-wise measure");
         System.out.println("3: Page-wise measure");
@@ -33,18 +33,18 @@ public class Main {
         System.out.println("\nThe 3x3x3 array is:");
         printArray(array);
 
-        System.out.println("\nEnter Page (i), Row (j), and Column (k) indices (0-based ) to retrieve the value:");
+        System.out.println("\nEnter Page (i), Row (j), and Column (k) indices (0-based) to retrieve the value:");
+        int page = scanner.nextInt();
         int row = scanner.nextInt();
         int col = scanner.nextInt();
-        int page = scanner.nextInt();
 
-        if (row >= 0 && row < 3 && col >= 0 && col < 3 && page >= 0 && page < 3) {
-            int value = array[row][col][page];
-            System.out.println("Value at (" + row + ", " + col + ", " + page + "): " + value);
+        if (page >= 0 && page < 3 && row >= 0 && row < 3 && col >= 0 && col < 3) {
+            int value = array[page][row][col];
+            System.out.println("Value at (" + page + ", " + row + ", " + col + "): " + value);
 
             int position = findLinearPosition(linearArray, value);
             if (position != -1) {
-                System.out.println("linear index: " + position) ;
+                System.out.println("Linear index (1-based): " + position);
             } else {
                 System.out.println("Value not found in linear array!");
             }
@@ -66,11 +66,11 @@ public class Main {
 
     private static void inputRowWise(int[][][] array, Scanner scanner, int[] linearArray) {
         int index = 0;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                for (int k = 0; k < 3; k++) {
-                    array[i][j][k] = scanner.nextInt();
-                    linearArray[index++] = array[i][j][k];
+        for (int page = 0; page < 3; page++) {
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 3; col++) {
+                    array[page][row][col] = scanner.nextInt();
+                    linearArray[index++] = array[page][row][col];
                 }
             }
         }
@@ -78,11 +78,11 @@ public class Main {
 
     private static void inputColumnWise(int[][][] array, Scanner scanner, int[] linearArray) {
         int index = 0;
-        for (int j = 0; j < 3; j++) {
-            for (int i = 0; i < 3; i++) {
-                for (int k = 0; k < 3; k++) {
-                    array[i][j][k] = scanner.nextInt();
-                    linearArray[index++] = array[i][j][k];
+        for (int page = 0; page < 3; page++) {
+            for (int col = 0; col < 3; col++) {
+                for (int row = 0; row < 3; row++) {
+                    array[page][row][col] = scanner.nextInt();
+                    linearArray[index++] = array[page][row][col];
                 }
             }
         }
@@ -90,22 +90,22 @@ public class Main {
 
     private static void inputPageWise(int[][][] array, Scanner scanner, int[] linearArray) {
         int index = 0;
-        for (int k = 0; k < 3; k++) {
-            for (int i = 0; i < 3; i++) {
-                for (int j = 0; j < 3; j++) {
-                    array[i][j][k] = scanner.nextInt();
-                    linearArray[index++] = array[i][j][k];
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                for (int page = 0; page < 3; page++) {
+                    array[page][row][col] = scanner.nextInt();
+                    linearArray[index++] = array[page][row][col];
                 }
             }
         }
     }
 
     private static void printArray(int[][][] array) {
-        for (int i = 0; i < 3; i++) {
-            System.out.println("Page i = " + i + ":");
-            for (int j = 0; j < 3; j++) {
-                for (int k = 0; k < 3; k++) {
-                    System.out.print(array[i][j][k] + " ");
+        for (int page = 0; page < 3; page++) {
+            System.out.println("Page " + page + ":");
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 3; col++) {
+                    System.out.print(array[page][row][col] + " ");
                 }
                 System.out.println();
             }
