@@ -2,8 +2,9 @@ package com.snu.project;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.*;
-import java.util.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.time.LocalDateTime;
 
 public class MainGUI {
     public static void main(String[] args) {
@@ -20,113 +21,94 @@ public class MainGUI {
         panel.setLayout(new GridLayout(2, 1, 10, 10));
 
         JButton btnSignature = new JButton("Embed/View Digital Signature");
-        JButton btnShamir = new JButton("Image Sharing (Shamir's)");
+        JButton btnWatermark = new JButton("Watermark Utility");
 
+        // Signature placeholder
         btnSignature.addActionListener(e -> {
             JOptionPane.showMessageDialog(frame, "Feature 1 already implemented.");
         });
 
-        // Feature 2: Shamir's Secret Sharing using ShamirStringUtil
-        btnShamir.addActionListener(e -> {
-            String[] options = {"Split Image into Shares", "Reconstruct Image from Shares"};
+        // Watermark Utility Feature
+        btnWatermark.addActionListener(e -> {
+            String[] options = {"Add Watermark", "Fetch Watermark"};
             int choice = JOptionPane.showOptionDialog(
-                    frame, "What would you like to do?",
-                    "Shamir's Secret Sharing",
+                    frame, "Choose an action:", "Watermark Options",
                     JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
                     null, options, options[0]);
 
-            if (choice == 0) { // Split
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setDialogTitle("Select image to split");
-                if (fileChooser.showOpenDialog(frame) != JFileChooser.APPROVE_OPTION) return;
-                File inputImage = fileChooser.getSelectedFile();
+            if (choice == 0) {
+                // Add Watermark
+                JFileChooser chooser = new JFileChooser();
+                chooser.setDialogTitle("Select Image");
+                if (chooser.showOpenDialog(frame) != JFileChooser.APPROVE_OPTION) return;
+                File imageFile = chooser.getSelectedFile();
 
-                try {
-                    byte[] imageBytes = new FileInputStream(inputImage).readAllBytes();
+                String userText = JOptionPane.showInputDialog(frame, "Enter watermark text:");
+                if (userText == null || userText.trim().isEmpty()) return;
 
-                    JPasswordField pf1 = new JPasswordField();
-                    JPasswordField pf2 = new JPasswordField();
-                    if (JOptionPane.showConfirmDialog(frame, pf1, "Enter Password", JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
-                    if (JOptionPane.showConfirmDialog(frame, pf2, "Confirm Password", JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
-                    String pass1 = new String(pf1.getPassword());
-                    String pass2 = new String(pf2.getPassword());
-                    if (!pass1.equals(pass2)) {
-                        JOptionPane.showMessageDialog(frame, "Passwords do not match.");
-                        return;
-                    }
+                String timeStamp = LocalDateTime.now().toString();
+                String finalText = userText + " | " + timeStamp;
 
-                    int n = Integer.parseInt(JOptionPane.showInputDialog("Enter total number of shares (n):"));
-                    int k = Integer.parseInt(JOptionPane.showInputDialog("Enter minimum shares to reconstruct (k):"));
-                    if (k > n || k < 2) {
-                        JOptionPane.showMessageDialog(frame, "Invalid values: k must be <= n and >= 2");
-                        return;
-                    }
-
-                    JFileChooser dirChooser = new JFileChooser();
-                    dirChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                    dirChooser.setDialogTitle("Select folder to save shares");
-                    if (dirChooser.showSaveDialog(frame) != JFileChooser.APPROVE_OPTION) return;
-                    String outputDir = dirChooser.getSelectedFile().getAbsolutePath();
-
-                    Map<Integer, String> shares = ShamirStringUtil.splitEncryptedData(imageBytes, n, k, pass1);
-                    for (Map.Entry<Integer, String> entry : shares.entrySet()) {
-                        ShamirStringUtil.saveShareToFile(entry.getValue(), entry.getKey(), outputDir);
-                    }
-
-                    JOptionPane.showMessageDialog(frame, "Image split into " + n + " shares.");
-
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(frame, "Error during splitting: " + ex.getMessage());
-                }
-
-            } else if (choice == 1) { // Reconstruct
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setDialogTitle("Select share files");
-                fileChooser.setMultiSelectionEnabled(true);
-                if (fileChooser.showOpenDialog(frame) != JFileChooser.APPROVE_OPTION) return;
-                File[] selectedFiles = fileChooser.getSelectedFiles();
-                if (selectedFiles.length < 2) {
-                    JOptionPane.showMessageDialog(frame, "Select at least 2 share files.");
+                JPasswordField passwordField = new JPasswordField();
+                if (JOptionPane.showConfirmDialog(frame, passwordField, "Enter password for encryption", JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION)
                     return;
-                }
-
-                JPasswordField pf = new JPasswordField();
-                if (JOptionPane.showConfirmDialog(frame, pf, "Enter Password", JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
-                String password = new String(pf.getPassword());
+                String password = new String(passwordField.getPassword());
 
                 try {
-                    Map<Integer, String> selectedShares = new HashMap<>();
-                    for (File f : selectedFiles) {
-                        String name = f.getName().replaceAll("[^0-9]", "");
-                        int index = Integer.parseInt(name);
-                        selectedShares.put(index, ShamirStringUtil.loadShareFromFile(f));
-                    }
-
-                    byte[] originalBytes = ShamirStringUtil.reconstructEncryptedData(selectedShares, password);
+                    BufferedImage img = LSBSteganography.loadImage(imageFile.getAbsolutePath());
+                    String encrypted = DESUtil.encrypt(finalText, password);
+                    BufferedImage watermarked = LSBSteganography.embedText(encrypted, img);
 
                     JFileChooser saveChooser = new JFileChooser();
-                    saveChooser.setDialogTitle("Save reconstructed image");
+                    saveChooser.setDialogTitle("Save watermarked image");
                     if (saveChooser.showSaveDialog(frame) != JFileChooser.APPROVE_OPTION) return;
-                    File outputFile = saveChooser.getSelectedFile();
-                    try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-                        fos.write(originalBytes);
+
+                    File saveFile = saveChooser.getSelectedFile();
+                    String filePath = saveFile.getAbsolutePath();
+
+                    // Ensure it ends with .png
+                    if (!filePath.toLowerCase().endsWith(".png")) {
+                        filePath += ".png";
                     }
 
-                    JOptionPane.showMessageDialog(frame, "Image successfully reconstructed!");
+                    LSBSteganography.saveImage(watermarked, filePath);
+
+                    JOptionPane.showMessageDialog(frame, "Watermark embedded successfully!");
 
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    JOptionPane.showMessageDialog(frame, "Reconstruction failed: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(frame, "Error: " + ex.getMessage());
+                }
+
+            } else if (choice == 1) {
+                // Fetch Watermark
+                JFileChooser chooser = new JFileChooser();
+                chooser.setDialogTitle("Select Watermarked Image");
+                if (chooser.showOpenDialog(frame) != JFileChooser.APPROVE_OPTION) return;
+                File imageFile = chooser.getSelectedFile();
+
+                JPasswordField passwordField = new JPasswordField();
+                if (JOptionPane.showConfirmDialog(frame, passwordField, "Enter password to decrypt", JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION)
+                    return;
+                String password = new String(passwordField.getPassword());
+
+                try {
+                    BufferedImage img = LSBSteganography.loadImage(imageFile.getAbsolutePath());
+                    String extracted = LSBSteganography.extractText(img);
+                    String decrypted = DESUtil.decrypt(extracted, password);
+                    JOptionPane.showMessageDialog(frame, "Watermark: " + decrypted);
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(frame, "Failed to extract watermark: " + ex.getMessage());
                 }
             }
         });
 
         panel.add(btnSignature);
-        panel.add(btnShamir);
+        panel.add(btnWatermark);
+
         frame.add(panel);
         frame.setVisible(true);
     }
 }
-
-
