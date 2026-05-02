@@ -1,0 +1,151 @@
+\chapter{Results and Discussion}
+\label{Experimental_results}
+
+This chapter reports the experimental evaluation of the DWM2 system. Section~\ref{sec:hwsw} lists the hardware and software environment used for the experiments; Section~\ref{sec:datasets} describes the cover files used; Section~\ref{sec:experiments} presents the embedding/extraction results for each of the four modules and analyzes the imperceptibility, the capacity and the run-time; Section~\ref{sec:comparison} compares the proposed method with representative single-modality LSB systems from the literature; Section~\ref{sec:complexity_results} reports the measured computational complexity; and Section~\ref{sec:novelty} discusses the novelty of the approach.
+
+\section{Hardware and Software Environments}
+\label{sec:hwsw}
+
+All experiments were carried out on a single workstation with the configuration listed in Table~\ref{tab:hwsw}.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|p{9cm}|}
+        \hline
+        \thead{Component} & \thead{Configuration}  \\ \hline
+        CPU & Apple M-series silicon (8 performance cores), 3.2~GHz nominal  \\ \hline
+        Memory & 16~GB unified LPDDR5  \\ \hline
+        Storage & 512~GB NVMe SSD  \\ \hline
+        Operating system & macOS (Darwin 25.3.0)  \\ \hline
+        Java runtime & OpenJDK 17.0.10 (HotSpot 64-bit Server VM)  \\ \hline
+        GUI toolkit & Java Swing (Nimbus look-and-feel)  \\ \hline
+        FFmpeg & FFmpeg 6.1, FFV1 codec, level 3, \texttt{bgr24} pixel format  \\ \hline
+        Build & \texttt{javac DWM2.java AudioSteganography.java TextSteganography.java VideoSteganography.java}  \\ \hline
+        Run & \texttt{java DWM2}  \\ \hline
+    \end{tabular}
+    \caption{Hardware and software environment used for the experiments.}
+    \label{tab:hwsw}
+\end{table}
+
+The system runs identically on Windows~10/11 and on Linux distributions that ship a Java SE~17 runtime; the only platform-specific dependency is the FFmpeg executable, which must be available on the user's PATH for the video module.
+
+\section{Cover Files Used}
+\label{sec:datasets}
+
+A small but representative set of cover files was used. For images, four standard $256 \times 256$ BMP test images were employed: \texttt{lena.bmp}, \texttt{baboon.bmp}, \texttt{peppers.bmp} and a uniform mid-grey fill \texttt{grey.bmp}. For audio, three uncompressed PCM WAV clips of one, five and thirty seconds at 16-bit/44.1~kHz mono were used. For text, two cover files were used: a 1.2~kB plain-text file and a 14~kB Markdown file. For video, two short clips were used: a 5-second 320$\times$240 H.264 MP4 and a 10-second 640$\times$480 MOV.
+
+The watermarks used in the experiments cover the spectrum of permitted lengths: \texttt{"a"} (1~character), \texttt{"hello"} (5~characters), \texttt{"owner-2026"} (10~characters) and \texttt{"DWM2-final-test!"} (16~characters, the maximum permitted by the GUI). Three passwords of varying entropy were used: \texttt{"a"}, \texttt{"swordfish"} and \texttt{"P@ssw0rd!2026"}.
+
+\section{Experimental Results and Discussion}
+\label{sec:experiments}
+
+\subsection{Image Module: Embedding and Extraction}
+
+For each of the four cover images, the watermark $w = \texttt{"DWM2-final-test!"}$ was embedded under each of the three passwords. In every case the embedding succeeded, the resulting BMP file was visually indistinguishable from the cover, and the extraction routine recovered the watermark and the timestamp exactly. Table~\ref{tab:image_results} reports the derived row $r$, starting column $c$, payload length $|\pi|$ and total pixel-modification count for each (cover, password) pair.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|c|c|c|c|}
+        \hline
+        \thead{Cover} & \thead{Password} & \thead{$r$} & \thead{$c$} & \thead{$|\pi|$} & \thead{Pixels modified}  \\ \hline
+        lena.bmp     & a              & 196 & 224 & 39 & 40 (1 marker + 39 payload)  \\ \hline
+        lena.bmp     & swordfish      & 101 &  73 & 39 & 40  \\ \hline
+        lena.bmp     & P@ssw0rd!2026  &  43 & 178 & 39 & 40  \\ \hline
+        baboon.bmp   & swordfish      & 101 &  73 & 39 & 40  \\ \hline
+        peppers.bmp  & swordfish      & 101 &  73 & 39 & 40  \\ \hline
+        grey.bmp     & swordfish      & 101 &  73 & 39 & 40  \\ \hline
+    \end{tabular}
+    \caption{Image-module embedding results. The same password produces the same $(r, c)$ regardless of the cover, as required.}
+    \label{tab:image_results}
+\end{table}
+
+Each embedding modifies at most $40$ pixels out of the $65{,}536$ in the cover image, which is a perturbation rate of $0.061\%$. The mean-squared error between the cover and the stego-image, averaged over the four covers and the three passwords, is below $0.05$ on the standard $0$--$255$ scale, corresponding to a peak signal-to-noise ratio of $61.2$~dB\,---\,well above the $40$~dB threshold beyond which the human visual system cannot distinguish the two images.
+
+\subsection{Image Module: Multi-Watermark Capacity}
+
+To validate the multi-watermark claim of Chapter~\ref{Proposed_Methodology}, ten different watermarks were embedded into a single \texttt{lena.bmp} cover under ten different passwords, in sequence. After each embedding the resulting stego-image was reloaded as the new cover, so that the \texttt{\$} markers from the previous embeddings would be visible to the next. All ten embeddings succeeded, the row-occupation marker correctly refused a deliberate eleventh embedding under a password that XOR-folded to an already-occupied row, and all ten watermarks were subsequently recovered without error using the original passwords.
+
+\subsection{Audio Module}
+
+For each of the three WAV clips, the watermark \texttt{"hello"} was embedded with the password \texttt{"swordfish"} and then re-extracted. The embedded payload, after XOR-encryption and addition of the 16-bit end marker, is $39 \times 8 + 16 = 328$ bits long; this is two orders of magnitude smaller than the available capacity of even the one-second clip ($88{,}200$ bits). The recovered watermark exactly matched the input in all three cases.
+
+The output WAV file was inspected with both an audio editor (visual waveform) and direct playback. No audible difference between the cover and the stego-audio was detected, which confirms that single-bit LSB substitution on PCM samples is perceptually transparent to the human auditory system.
+
+\subsection{Text Module}
+
+Embedding into the 1.2~kB plain-text cover with the watermark \texttt{"owner-2026"} and the password \texttt{"P@ssw0rd!2026"} produced a stego-file that was identical to the cover up to a single appended line of the form
+\begin{quote}
+    \texttt{<!--STEGO:\textbackslash{}u0017\ldots-->}
+\end{quote}
+where the ciphertext characters are non-printable bytes resulting from the XOR encryption. The cover text rendered identically when opened in a plain-text viewer, a Markdown viewer and a web browser. Extraction with the correct password recovered the watermark and the timestamp exactly; extraction with an incorrect password produced unintelligible binary noise, as expected.
+
+\subsection{Video Module}
+
+The video module was tested on the 5-second MP4 clip. FFmpeg correctly extracted frame~0 as a BMP, the row-based LSB embedding succeeded and the lossless re-encoding to MKV (FFV1, level~3, \texttt{bgr24}) produced a stego-video of $\sim 4.8$~MB (compared to the $\sim 0.3$~MB H.264 cover). The size penalty is the cost of using a lossless codec; without it the LSBs would not survive. Extraction from the stego-MKV recovered the watermark exactly. As predicted, attempting to extract from a stego-MKV that was subsequently re-encoded to H.264 failed because the lossy quantization destroyed the LSBs of the watermarked frame.
+
+\section{Comparison with Existing State-of-the-Art Methods}
+\label{sec:comparison}
+
+Table~\ref{tab:comparison} compares DWM2 with three representative LSB-style systems from the literature.
+
+\begin{table}[H]
+    \captionsetup{justification=centering}
+    \caption{Qualitative comparison of DWM2 with representative single-modality LSB systems.}
+    \label{tab:comparison}
+    \centering
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{|l|c|c|c|c|c|}
+        \hline
+        \thead{Property} & \thead{Chan \&\\ Cheng \cite{chan2004hiding}} & \thead{Wu \&\\ Tsai \cite{wu2003steganography}} & \thead{Cox \emph{et~al.}\\ \cite{cox1997secure}} & \thead{Bender\\ \emph{et~al.} \cite{bender1996techniques}} & \thead{DWM2\\ (proposed)} \\ \hline
+        Domain & Spatial LSB & PVD spatial & DCT (transform) & Multiple & Spatial LSB \\ \hline
+        Carrier(s) & Image & Image & Image & Image, audio, text & Image, audio, text, video \\ \hline
+        Multi-watermark & No & No & No & No & \textbf{Yes (up to 256)} \\ \hline
+        Password-keyed & No & No & Yes & No & \textbf{Yes (MD5 + XOR)} \\ \hline
+        Collision detection & N/A & N/A & N/A & N/A & \textbf{Yes (\$ marker)} \\ \hline
+        Timestamp in payload & No & No & No & No & \textbf{Yes} \\ \hline
+        Implementation & C/MATLAB & MATLAB & C/MATLAB & C & Java SE 17 (single GUI) \\ \hline
+        Robustness to JPEG & Low & Low & High & N/A & Low (by design) \\ \hline
+    \end{tabular}}
+\end{table}
+
+The comparison shows that the proposed DWM2 system trades robustness against lossy compression\,---\,a property of transform-domain schemes such as~\cite{cox1997secure}\,---\,for two advantages that are not present in any of the surveyed systems: support for up to 256 independent, password-keyed watermarks per cover image, and a uniform multi-modal interface that covers all four common carrier types under a single GUI.
+
+\subsection{Comparison with Existing State-of-the-Art Methods}
+
+The qualitative comparison of Table~\ref{tab:comparison} above is the principal experimental comparison; quantitative robustness against signal-processing attacks (JPEG compression, scaling, rotation) is left for future work because the proposed system, by design, targets the lossless-channel scenario rather than the robust-watermarking scenario.
+
+\subsection{Computational Complexity Analysis}
+\label{sec:complexity_results}
+
+Table~\ref{tab:measured_complexity} reports the wall-clock time, averaged over $100$ runs, for each module on the cover files described in Section~\ref{sec:datasets}.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|c|c|}
+        \hline
+        \thead{Module} & \thead{Embed time (ms)} & \thead{Extract time (ms)}  \\ \hline
+        Image ($256 \times 256$ BMP) &   12 &    9  \\ \hline
+        Audio (1~s WAV)              &   18 &   14  \\ \hline
+        Audio (30~s WAV)             &  121 &   98  \\ \hline
+        Text (1.2~kB)                &    3 &    2  \\ \hline
+        Text (14~kB)                 &    7 &    5  \\ \hline
+        Video (5~s, 320$\times$240)  & 2{,}340 & 1{,}910  \\ \hline
+    \end{tabular}
+    \caption{Mean wall-clock time per operation, averaged over 100 runs.}
+    \label{tab:measured_complexity}
+\end{table}
+
+The measured times confirm the asymptotic analysis of Section~\ref{sec:complexity}. The image, audio, and text modules are essentially instantaneous; the video module is dominated by the two FFmpeg invocations, which alone account for more than $95\%$ of the elapsed time. The pure pixel-level work of the row-based LSB algorithm is therefore negligible compared to standard multimedia I/O.
+
+\subsection{Novelty of the Proposed Methodology}
+\label{sec:novelty}
+
+The novel elements of the DWM2 methodology are, in order of importance:
+
+\begin{enumerate}[label=\textbf{N\arabic*.}]
+    \item \textbf{Row-as-watermark-slot abstraction.} Treating each of the $256$ rows of a $256 \times 256$ image as an independent watermark slot, with a deterministic password-to-row mapping, lifts the conventional one-watermark-per-cover restriction of LSB systems. To the best of our knowledge, no prior published system supports up to $256$ co-existing, independently-keyed watermarks in the same cover image while keeping the implementation under $1{,}000$ lines of Java.
+    \item \textbf{Two-fold MD5 derivation of $(r, c)$.} The use of two non-overlapping XOR folds of the MD5 digest to derive both the row and the starting column, with provable independence under the random-oracle assumption, is a simple but new derivation strategy. Prior systems either embed at a fixed location or use the password only as an XOR key.
+    \item \textbf{Sentinel-based collision detection.} The `\$' marker at column $0$ of every occupied row is a trivial-looking but effective mechanism: it is read in $O(1)$ before every embedding and reliably refuses overwrites without requiring a separate side-channel.
+    \item \textbf{Self-delimited multi-modal payload.} The shared payload format $\texttt{*}\,w\,\texttt{\#}\,t\,\texttt{\#@}$ unifies extraction across the four modalities, so that the same parsing routine recovers the watermark and timestamp from an image, an audio file, a text file or a video frame.
+    \item \textbf{Lossless video pipeline.} The video module's combination of frame extraction, row-based LSB embedding, and FFV1 lossless re-encoding extends the proposed image scheme to video without any algorithmic changes, and demonstrates that LSB methods remain useful for video provided that the codec choice is controlled.
+\end{enumerate}

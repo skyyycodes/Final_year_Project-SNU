@@ -1,0 +1,54 @@
+\chapter{Conclusion and Future Work}
+\label{Conclusion_and_Future_Work}
+
+\section{Summary of the Work}
+
+This dissertation has presented \textbf{DWM2 (Digital Water Marking, version 2)}, a unified Java Swing application for digital watermarking and steganography across four carrier types: $256 \times 256$ BMP images, WAV audio, plain-text files, and video containers. The central contribution is a \emph{row-based least-significant-bit} watermarking scheme for images in which an MD5 digest of the user-supplied password deterministically selects (i)~the image row that will host the watermark and (ii)~the starting column within that row. Two non-overlapping XOR folds of the digest produce the row and column indices in the range $[0, 255]$, allowing up to \textbf{256 independent watermarks} to coexist in the same cover image, each protected by its own password. A sentinel character `\$' at column~0 of every occupied row prevents accidental overwrites, a 3--3--2 RGB bit split keeps the per-channel perturbation below the just-noticeable-difference threshold, and a self-delimited payload of the form $\texttt{*}\,w\,\texttt{\#}\,t\,\texttt{\#@}$ allows extraction to terminate without a length field.
+
+The audio, text and video modules reuse the same payload format, the same password input and the same in-window log under a single Swing GUI. Audio uses single-bit LSB substitution on raw PCM samples preceded by an XOR encryption; text appends an XOR-encrypted block inside an HTML-style comment; video extracts the first frame, applies the image algorithm, and re-encodes losslessly with FFV1 so that the LSBs survive.
+
+Experimental evaluation on standard test images, WAV clips, text files and short videos confirms that:
+
+\begin{itemize}
+    \item the embedding is perceptually transparent (PSNR $\ge 61$~dB on $256 \times 256$ images, no audible difference on PCM audio, identical rendering of stego-text);
+    \item the row-based scheme correctly supports ten or more co-existing watermarks per image and reliably refuses overwrites at the eleventh attempt under a colliding password;
+    \item the image, audio and text modules complete an embedding or extraction in less than $130$~ms on commodity hardware, while the video module is dominated by FFmpeg I/O at a few seconds per clip;
+    \item the qualitative comparison of Chapter~\ref{Experimental_results} positions the system as a multi-watermark, multi-modal alternative to single-modality LSB tools rather than a competitor to robust transform-domain watermarking.
+\end{itemize}
+
+The system has been delivered as a single self-contained Swing application of approximately $1{,}500$ lines of Java code, accompanied by a comprehensive in-window algorithmic log that prints every internal step. This makes the project useful both as a working ownership-proof tool for lossless distribution scenarios and as a teaching reference for undergraduate courses on multimedia security.
+
+\section{Limitations}
+
+In the spirit of a frank technical evaluation, the current prototype has the following limitations.
+
+\begin{enumerate}[label=\textbf{L\arabic*.}]
+    \item \textbf{Robustness against lossy channels.} The spatial LSB scheme is destroyed by JPEG re-compression of an image, MP3 re-encoding of an audio file or H.264/H.265 re-encoding of a video. The system assumes a lossless transmission channel, which is a strong assumption in practice.
+    \item \textbf{Cover-size restriction.} The image module requires the cover to be exactly $256 \times 256$ pixels because the row index is derived in $[0, 255]$. Larger or smaller covers are presently rejected.
+    \item \textbf{Cryptographic strength.} MD5 is used only as a deterministic key-derivation function and is acceptable in the present non-adversarial setting, but it is no longer collision-resistant. Likewise, the XOR encryption used in the audio and text modules is a weak cipher whose only purpose is didactic clarity.
+    \item \textbf{Timestamp format bug.} The timestamp pattern uses Java's \texttt{HH/MM/ss/dd/MM/yyyy}; uppercase \texttt{MM} denotes month, so the second field is the month rather than the minutes. The bug is benign (the recovered timestamp is still uniquely interpretable, although the field labels are wrong) and is listed as the first item in the future-work roadmap below.
+    \item \textbf{Empty-key edge case.} The XOR encryption uses the expression \texttt{key.charAt(i \% key.length())}, which throws an exception when the key is empty. The embedding routines assume a non-empty key; the GUI does not currently enforce this for the audio and text modules.
+    \item \textbf{Row-occupation collision check on first session.} For images, the embedder reads the row-occupation marker from the \emph{loaded} cover. A second embedding within the same session into the in-memory stego-image is therefore not detected; the user must save and reload the stego-image between embeddings.
+\end{enumerate}
+
+\section{Future Work}
+
+The following extensions would address the limitations listed above and would significantly broaden the practical applicability of the system.
+
+\begin{enumerate}[label=\textbf{F\arabic*.}]
+    \item \textbf{Fix the timestamp pattern.} Replace \texttt{HH/MM/ss/dd/MM/yyyy} with \texttt{HH/mm/ss/dd/MM/yyyy} so that the second field is correctly interpreted as minutes.
+    \item \textbf{Replace XOR with AES-GCM.} Substitute the XOR encryption in the audio and text modules with AES-256 in Galois/Counter Mode~\cite{daemen2002design}, which provides confidentiality, integrity and authenticated encryption in a single primitive.
+    \item \textbf{Replace MD5 with SHA-256 or HKDF.} Use a modern, collision-resistant hash function or, better, an HMAC-based key derivation function to derive the row and column indices.
+    \item \textbf{Support arbitrary image sizes.} Generalize the row-based scheme to images of size $W \times H$ by computing the row index modulo $H$ and the column modulo $W$. This would also extend the maximum number of co-existing watermarks from $256$ to $H$.
+    \item \textbf{Support PNG and other lossless formats.} Add I/O paths for PNG, TIFF and other lossless image containers, which are far more common than BMP in modern workflows.
+    \item \textbf{Address robustness against lossy compression.} Implement a hybrid mode that embeds in the discrete cosine transform (DCT) coefficients in the manner of Cox \emph{et~al.}~\cite{cox1997secure}, in addition to the spatial LSB embedding, so that the watermark survives JPEG compression at the cost of a smaller payload.
+    \item \textbf{Detect in-session row occupation.} Read the row-occupation marker from the in-memory stego-image rather than from the loaded cover, so that consecutive embeddings within the same session correctly detect collisions.
+    \item \textbf{Use a file-chooser for audio/text/video output.} Replace the hard-coded output names \texttt{watermarked\_audio.wav}, \texttt{stego\_text.txt} and \texttt{watermarked\_video.mkv} with a save dialog, in line with the existing image module.
+    \item \textbf{Add a command-line interface.} Expose the four modules through a \texttt{--cli} mode for use in scripted batch-watermarking pipelines and for automated regression testing.
+    \item \textbf{Steganalysis hardening.} Evaluate the proposed scheme against the RS attack of Fridrich \emph{et~al.}~\cite{fridrich2001detecting} and, if necessary, adopt the matrix-encoding or LSB-matching variants that are known to be more resistant to statistical detection.
+    \item \textbf{Unit and integration testing.} Add a JUnit-based test suite that exercises each module on a fixed corpus of cover files and asserts bit-exact recovery, perceptual-quality bounds and correct collision behaviour.
+\end{enumerate}
+
+\section{Closing Remarks}
+
+The DWM2 project demonstrates that simple, transparent and didactically clear primitives can be combined to build a multi-modal information-hiding tool. The row-as-watermark-slot abstraction at the core of the image module is, to the best of our knowledge, a novel contribution to the LSB-watermarking literature, and the unified four-modality GUI makes the system genuinely useful as both a working prototype and a teaching artefact. The roadmap above shows that the same architecture can be extended in a number of directions\,---\,from stronger cryptography to robustness against lossy channels\,---\,without disturbing the central ideas of the present design.

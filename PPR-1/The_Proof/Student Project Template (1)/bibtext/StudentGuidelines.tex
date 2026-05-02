@@ -1,0 +1,165 @@
+\documentclass[listof=totoc,a4paper,12pt,oneside,chapterprefix=true,sfdefaults=false]{scrbook}
+\usepackage{etoolbox}
+%%%%%%%%%Header Footer
+\usepackage[automark,headsepline,markcase=upper]{scrlayer-scrpage}
+\automark[chapter]{chapter}
+\clearpairofpagestyles
+\setkomafont{pageheadfoot}{}
+\setkomafont{pagefoot}{\bfseries\small}
+\ohead{\headmark}
+\lefoot*{\pagemark{} \rule[-\dp\strutbox]{1pt}{\baselineskip} Page}
+\rofoot*{Page \rule[-\dp\strutbox]{1pt}{\baselineskip} \pagemark}
+\ifoot*{Sister Nivedita University, WB}
+\AddToHook{cmd/mainmatter/after}{%
+  \renewcommand*{\chapterpagestyle}{empty}% instead of plain → manual
+  \pagestyle{empty}%
+}
+\AddToHook{cmd/mainmatter/after}{%
+  \renewcommand*{\chapterpagestyle}{plain}%
+  \pagestyle{headings}%
+}
+%%%%%%%%%Header Footer
+\usepackage[margin=1in,head=27.2pt]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{setspace}
+\usepackage[normalem]{ulem} % for underline with normalem option
+\usepackage{ragged2e} % For justified text
+% Math packages
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{textcomp, gensymb}
+\usepackage{siunitx}
+\usepackage{latexsym}
+\usepackage{amsthm}
+\usepackage{pdfpages}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\graphicspath{{./images/}}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage[inline]{asymptote}
+\usepackage{eqparbox}
+%\usepackage{subfig}
+
+ \usepackage{mathptmx}  % For Times Roman font
+% \usepackage{fontspec}
+% \setmainfont{Arial}
+
+
+\usepackage[center]{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage[misc]{ifsym}
+\usepackage{csquotes}
+\usepackage[section]{placeins}
+\usepackage{siunitx}
+\usepackage{mdwmath}
+\usepackage{mdwtab}
+\usepackage{euler}
+\usepackage{stmaryrd}
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata}
+\usetikzlibrary{calc}
+
+
+\usepackage{enumerate}
+\usepackage{enumitem}
+\renewcommand{\labelitemi}{\tiny$ \color{black}\blacksquare$}  % blacksquare shaped itemized
+
+
+\usepackage[backend=biber,style=numeric, sorting=none]{biblatex}
+\addbibresource{References.bib}
+
+
+
+
+
+\usepackage{multicol}% used for the two-column index
+\usepackage[bottom]{footmisc}% places footnotes at page bottom
+\usepackage[linesnumbered,lined,commentsnumbered]{algorithm2e}
+%Table packages
+\usepackage[figuresright]{rotating}
+\usepackage{tabularray}
+\UseTblrLibrary{booktabs}
+\usepackage{booktabs, makecell, tabularx, multirow, ragged2e}
+\renewcommand{\theadfont}{\normalsize}
+\renewcommand\theadgape{}
+\newcolumntype{L}{>{\RaggedRight}X}
+\newcolumntype{P}[1]{>{\RaggedRight\hspace{0pt}}p{#1}}
+
+\newenvironment{calligraphic}{\usefont{T1}{pzc}{m}{it}}{}
+\newenvironment{conditions}
+  {\par\vspace{\abovedisplayskip}\noindent\begin{tabular}{>{$}l<{$} @{${}={}$} l}}
+  {\end{tabular}\par\vspace{\belowdisplayskip}}
+% Example
+
+
+\hypersetup{
+  colorlinks   = true, %Colours links instead of ugly boxes
+  urlcolor     = blue, %Colour for external hyperlinks
+  linkcolor    = blue, %Colour of internal links
+  citecolor   = red %Colour of citations
+}
+
+
+% Define a new font command
+\newcommand{\setchapterfont}{\fontsize{12}{14}\selectfont\fontfamily{ptm}\selectfont}
+% Patch the \mainmatter command to change font settings
+\preto{\mainmatter}{\setchapterfont}
+\newcommand{\acfull}[1]{\acl{#1} (\acs{#1})}
+
+% handy shortcut macro:for table in introduction
+\newcommand\mytab[1]{%
+   \begin{tabular}[t]{@{}l@{}} #1 \end{tabular}}
+
+
+\usepackage{mfirstuc} % for \capitalisewords and \makefirstuc
+
+
+   
+\begin{document}
+\include{bibtext/custom_commands}
+
+\frontmatter
+
+\include{bibtext/cover_page}
+\setcounter{page}{1}
+
+\begin{titlepage}
+\include{bibtext/title_page}
+\end{titlepage}
+
+\include{bibtext/declaration}
+\include{bibtext/certificate}
+
+\tableofcontents
+\listoffigures
+
+
+\justifying
+\onehalfspacing
+\include{bibtext/Acknowledgement}
+\include{bibtext/Abstract}
+
+
+\mainmatter
+
+\include{chapter1-introduction}
+
+\include{chapter2-literature-review}
+
+% \include{chapter3-feasibility-study}
+
+\include{chapter4-problem-identification}
+
+\include{chapter5-proposed-solution}
+
+\include{chapter6-experimental-results}
+
+\include{chapter7-conclusion}
+
+\include{chapter8-future-scope}
+
+\backmatter
+\printbibliography
+\end{document} 

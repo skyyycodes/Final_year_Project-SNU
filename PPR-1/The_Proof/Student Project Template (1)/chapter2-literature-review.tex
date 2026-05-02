@@ -1,0 +1,52 @@
+\chapter{Literature Survey}
+\label{Literature_Survey}
+
+The literature on information hiding can be conveniently split along two axes: the \emph{intent} of the embedding (overt watermarking versus covert steganography) and the \emph{carrier medium} (image, audio, text, or video). This chapter reviews the most influential prior work along both axes, with particular attention to the least-significant-bit (LSB) family of techniques on which the proposed DWM2 system is built.
+
+\section{Foundations of Information Hiding}
+
+The seminal survey by Petitcolas, Anderson and Kuhn~\cite{petitcolas1999information} introduced the modern taxonomy of information hiding and clearly distinguished the goals of \emph{steganography} (concealing the existence of communication), \emph{watermarking} (asserting ownership or authenticity), and \emph{covert channels}. The textbook of Cox \emph{et~al.}~\cite{cox2007digital} consolidated the field and remains the standard reference; it formalizes the basic embedding-extraction pipeline as a noisy-channel problem in which the cover signal is perturbed by an embedding function $E_K$ keyed by a secret $K$, and the perturbation is recovered by a corresponding extraction function $D_K$.
+
+Bender \emph{et~al.}~\cite{bender1996techniques} provided the first comprehensive catalogue of practical data-hiding techniques, including patchwork in images, echo hiding in audio and white-space encoding in text. Provos and Honeyman~\cite{provos2003hide} subsequently surveyed the security implications of widespread steganography on the Internet and emphasized the need for systems that are resilient to statistical attacks.
+
+\section{Image Watermarking and LSB Steganography}
+
+The simplest and most popular spatial-domain technique is least-significant-bit substitution. Chan and Cheng~\cite{chan2004hiding} formalized simple LSB substitution and showed that, with appropriate optimal pixel adjustment, the average mean-squared error between the cover and the stego image can be kept below a perceptual threshold while still embedding a useful payload of $\sim 1$ bit per pixel per channel. Johnson and Jajodia~\cite{johnson1998exploring} surveyed the landscape of image steganography tools available in the late 1990s and identified the trade-off between capacity and statistical detectability that still drives the field today.
+
+A persistent weakness of plain LSB substitution is its susceptibility to statistical steganalysis. Fridrich, Goljan and Du~\cite{fridrich2001detecting} introduced the celebrated RS (Regular and Singular) analysis, which reliably detects LSB embeddings in colour and grayscale images even at very low payloads. Wu and Tsai~\cite{wu2003steganography} proposed pixel-value-differencing (PVD) as a smarter alternative that adapts the number of embedded bits to the local image gradient, thereby reducing statistical detectability while increasing capacity in textured regions.
+
+In the transform domain, Cox \emph{et~al.}~\cite{cox1997secure} introduced spread-spectrum watermarking based on the discrete cosine transform (DCT), which embeds a pseudo-random sequence into the perceptually significant DCT coefficients. This approach is far more robust against compression and signal processing attacks than spatial LSB methods, but at the cost of a more complex implementation and a reduced payload. Podilchuk and Delp~\cite{podilchuk2001digital} provided a comprehensive comparison of spatial and transform-domain watermarking algorithms and discussed the perceptual masking models that underpin them.
+
+\section{Audio Steganography}
+
+Audio carriers offer a much higher absolute capacity than images because each second of CD-quality WAV audio contains $44{,}100 \times 2 \times 2 = 176{,}400$ bytes. Bender \emph{et~al.}~\cite{bender1996techniques} introduced the original family of audio data-hiding techniques (echo hiding, phase coding, and spread-spectrum), and Cvejic and Sepp{\"a}nen~\cite{cvejic2004increasing} subsequently demonstrated multi-LSB schemes that exploit the masking properties of the human auditory system to embed up to four bits per sample without perceptible distortion.
+
+Pure single-bit LSB substitution on raw PCM samples remains the most common educational baseline; it is straightforward to implement, robust against silent re-encoding to the same lossless format, and makes the trade-off between capacity and robustness easy to reason about. The DWM2 audio module follows this baseline and adds an XOR-encryption layer keyed by the user's password.
+
+\section{Text Steganography}
+
+Text is by far the most challenging carrier because its information density is high (every character is perceptible) and its formal grammar leaves little redundancy to hide bits in. Surveys such as those by Singh and Chadha~\cite{singh2013survey} group text-steganography techniques into three families: \emph{format-based} methods that exploit white space, font, or invisible Unicode characters; \emph{linguistic} methods that perform synonym substitution or syntactic transformation; and \emph{statistical} methods that re-generate text under a language model so that its statistics encode the payload.
+
+For practical purposes, the simplest format-based approach is to append an extra block of data inside a syntactically inert region of the file (for example, an HTML/XML comment) so that the cover renders identically and only an attacker who knows the marker can detect the addition. This is the approach adopted by the DWM2 text module.
+
+\section{Video Watermarking}
+
+Mstafa and Elleithy~\cite{mstafa2017comprehensive} provide a recent and comprehensive survey of video watermarking and steganography techniques. Video carriers offer the largest payload of any modality but are uniquely fragile: any lossy re-encoding (H.264, H.265, AV1) will quantize away any LSB perturbation. Robust video watermarking schemes therefore typically operate in the DCT or DWT domain, or embed in motion vectors.
+
+For an educational system the cleanest path is to (i)~extract a single frame, (ii)~apply an LSB image watermark to it, and (iii)~re-encode the video using a \emph{lossless} codec so that the LSBs survive. The FFV1 codec~\cite{niedermayer2013ffv1} is the standard open lossless video codec; it is supported by FFmpeg and stores frames bit-exact. The DWM2 video module follows precisely this strategy.
+
+\section{Cryptographic Primitives}
+
+The DWM2 system uses two cryptographic primitives. The MD5 message-digest algorithm of Rivest~\cite{rivest1992md5} is used to map a variable-length user password into a fixed-length 128-bit digest from which the row and column indices are derived. Although MD5 has been shown to be vulnerable to collision attacks~\cite{wang2005how} and is no longer recommended for security-critical applications, its uniform distribution and computational simplicity make it well-suited to the present, non-adversarial use as a key-derivation function for selecting an embedding location. The XOR encryption used in the audio and text modules is acknowledged to be a weak cipher; modern systems would use the Advanced Encryption Standard~\cite{daemen2002design} in an authenticated mode of operation. The use of weaker primitives in the present prototype is a conscious didactic choice that keeps the implementation transparent for an undergraduate audience and is revisited in Chapter~\ref{Conclusion_and_Future_Work}.
+
+\section{Position of the Proposed Work}
+
+The literature reviewed above shows that:
+
+\begin{itemize}
+    \item LSB substitution remains the canonical entry point into image and audio steganography because of its simplicity, perceptual transparency and pedagogical clarity.
+    \item Existing single-modality systems rarely allow multiple, independently-keyed watermarks to coexist in the same cover.
+    \item No widely-cited educational system unifies image, audio, text and video embedding under a single, consistent user interface and a single payload format.
+\end{itemize}
+
+The proposed DWM2 system addresses all three observations: it combines a row-based LSB scheme that admits up to 256 co-existing watermarks per image with audio, text and video extensions that share the same timestamped payload format, the same password input, and the same graphical front-end. The design is positioned as a didactic and lightweight ownership-proof tool rather than as a competitor to robust transform-domain schemes.

@@ -1,0 +1,44 @@
+\chapter{Introduction}
+
+The exponential growth of digital media on the open Internet, the ease with which a perfect copy of a digital file can be produced, and the rapid rise of generative AI models that can re-purpose copyrighted material at scale have made the protection of intellectual-property rights one of the central problems of modern computing. In response, the research community has developed two closely related families of information-hiding techniques: \emph{digital watermarking}, in which an identifying signal (the \emph{watermark}) is permanently embedded inside a host signal in order to prove ownership, authenticity, or integrity, and \emph{steganography}, in which the very existence of a secret message is concealed inside an innocuous-looking carrier so that an observer cannot tell that any communication is taking place \cite{cox2007digital,petitcolas1999information,johnson1998exploring}.
+
+Although the two paradigms differ in intent\,---\,watermarking is an overt declaration of ownership, whereas steganography is a covert channel\,---\,they share much of the same toolbox. Both rely on the perceptual redundancy of the cover medium: the human visual and auditory systems cannot reliably notice small perturbations of pixel intensity or audio amplitude, and so the least-significant bits (LSBs) of pixels, audio samples, or even the syntactic redundancy of a text file can be repurposed to carry a hidden payload \cite{chan2004hiding,bender1996techniques,morkel2005overview}.
+
+A great many published systems address \emph{one} of these modalities (image, audio, text, or video) in isolation, and a great many embed \emph{one} watermark per cover. In practice, however, a content owner may need to attach several different watermarks (one per recipient, one per release, one per language) to the same cover, and may need to do so across all media types of a single project. The work described in this dissertation, the \textbf{DWM2 (Digital Water Marking, version 2)} system, addresses both of these gaps in a single, self-contained Java Swing application.
+
+\section{Objectives}
+
+The principal objectives of the DWM2 project are summarized below.
+
+\begin{enumerate}[label=\textbf{O\arabic*.}]
+    \item To design and implement a row-based least-significant-bit watermarking algorithm for $256 \times 256$ BMP images that allows up to \textbf{256 independent watermarks} to coexist in the same cover image, with each watermark protected by its own user-supplied password.
+    \item To use a cryptographic hash function (MD5) of the password to deterministically select (a)~the image row that will host the watermark and (b)~the starting column within that row, so that no two passwords map to the same location in expectation.
+    \item To extend the system to three additional carrier types\,---\,WAV audio, plain-text files, and video containers\,---\,under a single, consistent graphical user interface, so that a non-expert user can embed and extract watermarks from any of the four supported media without re-learning a separate tool.
+    \item To incorporate a tamper-evident timestamp inside every embedded payload, so that the recovered watermark not only proves \emph{who} owns the cover but also \emph{when} the watermark was applied.
+    \item To provide an in-application algorithmic log that prints, step by step, the MD5 digest, the derived row and column, the binary representation of every embedded character, and the per-pixel modification, so that the system serves as a teaching tool as well as a working application.
+\end{enumerate}
+
+\section{Contributions}
+
+The main contributions of this work are the following.
+
+\begin{enumerate}[label=\textbf{C\arabic*.}]
+    \item \textbf{A row-based, password-keyed LSB watermarking scheme.} Unlike conventional pixel-sequential or block-based LSB methods that hide a single watermark, the proposed scheme treats each of the $256$ rows of a $256 \times 256$ image as an \emph{independent watermark slot}. Two non-overlapping XOR folds of the password's $128$-bit MD5 digest yield a row index and a starting column index in $[0,255]$, distributing watermarks across the image and limiting the maximum capacity to $256$ co-existing payloads.
+    \item \textbf{A row-occupation marker mechanism.} A single sentinel character `\$' (ASCII 36) is embedded at column~0 of every occupied row. The embedding routine reads this marker before writing, so the system reliably refuses to overwrite an existing watermark and asks the user to supply a different password instead.
+    \item \textbf{A 3--3--2 RGB bit split.} Each ASCII character is encoded into the LSBs of a single pixel using a 3-bit slice in the red channel, a 3-bit slice in the green channel and a 2-bit slice in the blue channel. The bound on the per-channel perturbation is therefore at most $\pm 7, \pm 7, \pm 3$ respectively, which is well below the just-noticeable-difference threshold of the human visual system.
+    \item \textbf{A multi-modal architecture.} The DWM2 application unifies four embedding modules\,---\,image, audio, text, and video\,---\,under a single Swing GUI and a single password/watermark input. The audio and text modules use XOR encryption with the password as the key; the video module re-uses the image algorithm on the first frame and re-encodes the cover with the lossless FFV1 codec to prevent quantization from destroying the LSBs.
+    \item \textbf{A timestamped, self-delimited payload format.} Every embedded payload follows the layout $\texttt{*}\,\langle\textit{watermark}\rangle\,\texttt{\#}\,\langle\textit{timestamp}\rangle\,\texttt{\#@}$, where `\texttt{*}' marks the start, `\texttt{\#}' separates the watermark from the timestamp and `\texttt{\#@}' marks the end. The end marker enables the extractor to terminate without prior knowledge of the payload length.
+    \item \textbf{An open, didactic implementation.} The application logs every internal step (MD5, XOR folds, binary encoding, per-pixel modification) to an in-window console, which makes the project useful as an educational reference for undergraduate courses on multimedia security.
+\end{enumerate}
+
+\section{Organization of the Chapters}
+
+The remainder of this dissertation is organized as follows.
+
+\begin{description}
+    \item[Chapter~\ref{Literature_Survey}] reviews the state of the art in digital watermarking and steganography across image, audio, text, and video carriers, discusses the LSB family of techniques, and motivates the design choices made in DWM2.
+    \item[Chapter~\ref{Problem_Identification}] formalizes the multi-modal, multi-watermark problem that the project addresses, defines the assumed threat model, and lists the design constraints that follow from it.
+    \item[Chapter~\ref{Proposed_Methodology}] describes the proposed methodology in detail, including the system architecture, the password-to-row mapping, the row-occupation marker, the per-pixel 3--3--2 bit split, and the audio, text, and video extensions. It also presents the embedding and extraction algorithms in pseudocode and accompanying block diagrams.
+    \item[Chapter~\ref{Experimental_results}] reports the experimental results obtained on a representative set of cover files, the hardware and software environment used, the comparison with existing single-modality LSB systems, the computational complexity of every routine, and a discussion of the novelty of the approach.
+    \item[Chapter~\ref{Conclusion_and_Future_Work}] concludes the dissertation, summarizes the lessons learned and outlines a roadmap of future improvements such as the use of stronger cryptography, support for arbitrary image sizes, and resilience against geometric attacks.
+\end{description}

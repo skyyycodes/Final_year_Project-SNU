@@ -21,6 +21,7 @@ public class DWM2 extends JFrame {
     private File currentImageFile;
     private File currentAudioFile;
     private File currentTextFile;
+    private File currentVideoFile;
 
     public DWM2() {
         initializeGUI();
@@ -132,7 +133,7 @@ public class DWM2 extends JFrame {
     private JPanel createButtonPanel() {
 
         JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new GridLayout(2,1,5,5));
+        mainPanel.setLayout(new GridLayout(4,1,5,5));
 
         // IMAGE BUTTONS
         JPanel imagePanel = new JPanel(new FlowLayout());
@@ -207,6 +208,31 @@ textPanel.add(embedTextButton);
 textPanel.add(extractTextButton);
 
 mainPanel.add(textPanel);
+
+// VIDEO PANEL
+JPanel videoPanel = new JPanel(new FlowLayout());
+
+JButton loadVideoButton = new JButton("Load Video");
+JButton embedVideoButton = new JButton("Embed Video");
+JButton extractVideoButton = new JButton("Extract Video");
+
+loadVideoButton.addActionListener(this::loadVideo);
+embedVideoButton.addActionListener(this::embedVideo);
+extractVideoButton.addActionListener(this::extractVideo);
+
+loadVideoButton.setBackground(new Color(0,120,215));
+embedVideoButton.setBackground(new Color(0,153,51));
+extractVideoButton.setBackground(new Color(255,140,0));
+
+loadVideoButton.setForeground(Color.WHITE);
+embedVideoButton.setForeground(Color.WHITE);
+extractVideoButton.setForeground(Color.WHITE);
+
+videoPanel.add(loadVideoButton);
+videoPanel.add(embedVideoButton);
+videoPanel.add(extractVideoButton);
+
+mainPanel.add(videoPanel);
 
         return mainPanel;
     }
@@ -814,6 +840,85 @@ private void extractText(ActionEvent e) {
     } catch (Exception ex) {
         ex.printStackTrace();
         JOptionPane.showMessageDialog(this, "Error extracting text.");
+    }
+}
+
+/* ================= VIDEO METHODS ================= */
+
+private void loadVideo(ActionEvent e) {
+
+    JFileChooser chooser = new JFileChooser();
+    chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+            "Video Files", "mp4", "mkv", "avi", "mov", "webm"));
+
+    if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+
+        currentVideoFile = chooser.getSelectedFile();
+
+        statusLabel.setText("Video loaded: " + currentVideoFile.getName());
+
+        log("=== VIDEO FILE LOADED ===");
+        log("File: " + currentVideoFile.getAbsolutePath());
+    }
+}
+
+private void embedVideo(ActionEvent e) {
+
+    try {
+
+        if (currentVideoFile == null) {
+            JOptionPane.showMessageDialog(this, "Please load a video file first!");
+            return;
+        }
+
+        String text = watermarkField.getText();
+        String key = new String(passwordField.getPassword());
+
+        File output = new File("watermarked_video.mkv");
+
+        VideoSteganography.hideText(currentVideoFile, output, text, key, this::log);
+
+        log("Video message embedded successfully.");
+        JOptionPane.showMessageDialog(this,
+                "Video watermark embedded!\nOutput: " + output.getAbsolutePath());
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
+        log("ERROR: " + ex.getMessage());
+        JOptionPane.showMessageDialog(this,
+                "Error embedding video message:\n" + ex.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
+
+private void extractVideo(ActionEvent e) {
+
+    try {
+
+        if (currentVideoFile == null) {
+            JOptionPane.showMessageDialog(this, "Please load a video file first!");
+            return;
+        }
+
+        String key = new String(passwordField.getPassword());
+
+        String message = VideoSteganography.extractText(currentVideoFile, key, this::log);
+
+        if (message == null) {
+            JOptionPane.showMessageDialog(this, "No hidden message found.");
+            return;
+        }
+
+        log("Extracted video message: " + message);
+
+        JOptionPane.showMessageDialog(this, "Hidden message: " + message);
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
+        log("ERROR: " + ex.getMessage());
+        JOptionPane.showMessageDialog(this,
+                "Error extracting video message:\n" + ex.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
 

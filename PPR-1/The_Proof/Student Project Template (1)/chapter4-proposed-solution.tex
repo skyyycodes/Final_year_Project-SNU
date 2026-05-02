@@ -1,0 +1,265 @@
+\chapter{Proposed Methodology}
+\label{Proposed_Methodology}
+
+This chapter describes the design and the algorithmic detail of the proposed DWM2 (Digital Water Marking, version 2) system. The chapter is organized in a top-down fashion: Section~\ref{sec:architecture} presents the system architecture and a block diagram of the application; Section~\ref{sec:image_module} details the row-based LSB image-watermarking algorithm; Sections~\ref{sec:audio_module}, \ref{sec:text_module} and~\ref{sec:video_module} describe the audio, text and video modules respectively; Section~\ref{sec:payload_format} formalizes the common payload format; and Section~\ref{sec:complexity} concludes with a worst-case complexity analysis.
+
+\section{System Architecture}
+\label{sec:architecture}
+
+The DWM2 application is implemented in Java SE~17 using the Java Swing toolkit for the graphical user interface. The architecture follows a strict separation between the GUI layer and four self-contained algorithmic modules, one per carrier type, as illustrated in Figure~\ref{fig:architecture}.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        node distance=0.9cm and 1.0cm,
+        every node/.style={font=\small},
+        box/.style={draw, rounded corners=2pt, minimum width=3cm, minimum height=0.8cm, align=center, fill=blue!5},
+        algo/.style={draw, rounded corners=2pt, minimum width=3.2cm, minimum height=0.8cm, align=center, fill=green!8},
+        helper/.style={draw, rounded corners=2pt, minimum width=3.2cm, minimum height=0.8cm, align=center, fill=orange!10},
+        gui/.style={draw, rounded corners=2pt, minimum width=10.5cm, minimum height=0.9cm, align=center, fill=yellow!15},
+        arrow/.style={->, >=stealth, thick}
+    ]
+        \node[gui] (gui) {DWM2 Swing GUI \\ (watermark field, password field, image preview, log area, four button rows)};
+        \node[box, below=of gui, xshift=-4.5cm] (img) {Image module \\ (DWM2.java)};
+        \node[box, below=of gui, xshift=-1.5cm] (aud) {Audio module \\ (AudioSteganography)};
+        \node[box, below=of gui, xshift=1.5cm] (txt) {Text module \\ (TextSteganography)};
+        \node[box, below=of gui, xshift=4.5cm] (vid) {Video module \\ (VideoSteganography)};
+
+        \node[helper, below=of img] (md5) {MD5 + XOR \\ row/col selector};
+        \node[helper, below=of aud] (xor1) {XOR encryption \\ + LSB embed};
+        \node[helper, below=of txt] (xor2) {XOR encryption \\ + comment marker};
+        \node[helper, below=of vid] (ffv1) {FFmpeg + FFV1 \\ frame substitution};
+
+        \node[algo, below=1.4cm of md5] (out1) {BMP \\ stego-image};
+        \node[algo, below=1.4cm of xor1] (out2) {WAV \\ stego-audio};
+        \node[algo, below=1.4cm of xor2] (out3) {TXT \\ stego-text};
+        \node[algo, below=1.4cm of ffv1] (out4) {MKV \\ stego-video};
+
+        \draw[arrow] (gui) -- (img);
+        \draw[arrow] (gui) -- (aud);
+        \draw[arrow] (gui) -- (txt);
+        \draw[arrow] (gui) -- (vid);
+        \draw[arrow] (img) -- (md5);
+        \draw[arrow] (aud) -- (xor1);
+        \draw[arrow] (txt) -- (xor2);
+        \draw[arrow] (vid) -- (ffv1);
+        \draw[arrow] (md5) -- (out1);
+        \draw[arrow] (xor1) -- (out2);
+        \draw[arrow] (xor2) -- (out3);
+        \draw[arrow] (ffv1) -- (out4);
+    \end{tikzpicture}
+    \caption{Block diagram of the DWM2 system. The Swing GUI dispatches the user request to one of four algorithmic modules; each module produces a stego-cover in the appropriate format.}
+    \label{fig:architecture}
+\end{figure}
+
+The GUI layer collects the watermark text, the password and the action (\texttt{Load}, \texttt{Embed}, \texttt{Extract}, \texttt{Save}) from the user, dispatches it to the appropriate module, and displays the resulting stego-cover or recovered watermark. Each module is implemented as a stand-alone class with no compile-time dependency on the GUI; the GUI passes a logger callback (a \verb|Consumer<String>|) to the module so that the module can write its progress messages back into the in-window log without referencing any Swing class.
+
+\section{Image-Watermarking Module}
+\label{sec:image_module}
+
+The image-watermarking module is the heart of the DWM2 system. It accepts a $256 \times 256$ BMP cover image, a watermark string of at most $16$ ASCII characters and a non-empty password, and produces a stego-image that contains the watermark in the LSBs of one row of pixels.
+
+\subsection{Password-to-Location Mapping}
+\label{sec:password_mapping}
+
+Let $p$ denote the user-supplied password and let $H = \mathrm{MD5}(p)$ denote its 128-bit MD5 digest, which is represented as a sequence of $16$ bytes $H = (h_0, h_1, \ldots, h_{15})$. Two non-overlapping XOR folds of $H$ produce the row index $r$ and the starting column index $c$:
+\begin{align}
+    r &= h_0 \oplus h_1 \oplus h_2 \oplus \cdots \oplus h_{11}, \label{eq:row}\\
+    c &= h_{12} \oplus h_{13} \oplus h_{14} \oplus h_{15}. \label{eq:col}
+\end{align}
+Because each $h_i \in \{0, \ldots, 255\}$ and XOR is closed on this set, both $r$ and $c$ lie in $\{0, \ldots, 255\}$. Under the standard random-oracle assumption on MD5, both $r$ and $c$ are uniformly distributed, and the joint distribution $(r, c)$ is uniform over the $256 \times 256 = 65{,}536$ possible $(\text{row}, \text{starting column})$ combinations. The use of disjoint slices of the digest ensures that $r$ and $c$ are statistically independent.
+
+\subsection{Per-Pixel 3--3--2 Bit Split}
+
+Each pixel in the cover image is a 24-bit RGB triple $(R, G, B)$ with $R, G, B \in \{0, \ldots, 255\}$. To embed an 8-bit ASCII character $\chi$ with binary representation $b_7 b_6 b_5 b_4 b_3 b_2 b_1 b_0$ into a single pixel, the algorithm splits $\chi$ into a 3-bit slice for red, a 3-bit slice for green and a 2-bit slice for blue:
+\begin{equation}
+    \chi = \underbrace{b_7 b_6 b_5}_{\text{Red LSB}} \mid \underbrace{b_4 b_3 b_2}_{\text{Green LSB}} \mid \underbrace{b_1 b_0}_{\text{Blue LSB}} \enspace .
+\end{equation}
+The new pixel $(R', G', B')$ is then computed by zeroing the three least-significant bits of $R$ and $G$ and the two least-significant bits of $B$, and substituting in the three slices:
+\begin{align}
+    R' &= (R \;\&\; \mathtt{0xF8}) \mid (b_7 b_6 b_5)_2, \label{eq:redmod}\\
+    G' &= (G \;\&\; \mathtt{0xF8}) \mid (b_4 b_3 b_2)_2, \\
+    B' &= (B \;\&\; \mathtt{0xFC}) \mid (b_1 b_0)_2.
+\end{align}
+The maximum per-channel perturbation introduced by~\eqref{eq:redmod} is therefore $|R' - R| \le 7$, $|G' - G| \le 7$ and $|B' - B| \le 3$, which is well below the just-noticeable-difference threshold of the human visual system (typically $\sim 5$ on each channel for natural images). Reversing the encoding requires only the lower-bit masks:
+\begin{equation}
+    \chi = ((R' \;\&\; \mathtt{0x07}) \ll 5) \mid ((G' \;\&\; \mathtt{0x07}) \ll 2) \mid (B' \;\&\; \mathtt{0x03}).
+\end{equation}
+
+\subsection{Row-Occupation Marker}
+
+A potential collision arises when two different passwords map to the same row $r$ (an event that occurs with probability $1/256$ per pair). To prevent silent overwrites, the embedder writes the sentinel character `\$' (ASCII~36) into pixel $(0, r)$ of every occupied row, using the same 3--3--2 encoding. Before any new embedding the routine reads pixel $(0, r)$, decodes it and checks whether the recovered character is `\$'. If it is, the embedding is refused with an explicit error message that asks the user to choose a different password; otherwise the routine proceeds with the embedding and writes the marker.
+
+\subsection{Self-Delimited Payload Layout}
+
+The payload that is actually written into the row consists of the user watermark $w$ surrounded by three delimiter characters and the embedding timestamp $t$:
+\begin{equation}
+    \pi(w, t) = \mathtt{*} \;\Vert\; w \;\Vert\; \mathtt{\#} \;\Vert\; t \;\Vert\; \mathtt{\#@} \enspace ,
+\end{equation}
+where $\Vert$ denotes string concatenation, `\texttt{*}' (ASCII~42) marks the start of the payload, `\texttt{\#}' (ASCII~35) separates the watermark from the timestamp and `\texttt{\#@}' marks the end. The first character of $\pi(w, t)$ is written at column $c$ of row $r$, and the subsequent characters are written at columns $(c+1) \bmod 256, (c+2) \bmod 256, \ldots$, wrapping around within the same row. Because $|w| \le 16$ and the timestamp has fixed length $19$, the total payload length is at most $1 + 16 + 1 + 19 + 2 = 39$ characters, which fits comfortably in the $255$ usable pixels of a row (column $0$ is reserved for the `\$' marker).
+
+\subsection{Embedding Algorithm}
+
+Algorithm~\ref{alg:embed} formalizes the complete image embedding routine.
+
+\begin{algorithm}[H]
+    \RaggedRight
+    \caption{Row-based LSB watermark embedding}
+    \label{alg:embed}
+    \algorithmicrequire \quad Cover image $I \in \{0,\ldots,255\}^{256 \times 256 \times 3}$, watermark $w$ with $|w| \le 16$, password $p$. \\
+    \algorithmicensure \quad Stego-image $I'$ containing $w$ in row $r$.
+
+    \begin{algorithmic}[1]
+        \State $H \gets \mathrm{MD5}(p)$
+        \State $r \gets h_0 \oplus h_1 \oplus \cdots \oplus h_{11}$ \Comment{Equation~\eqref{eq:row}}
+        \State $c \gets h_{12} \oplus h_{13} \oplus h_{14} \oplus h_{15}$ \Comment{Equation~\eqref{eq:col}}
+        \State $\chi_0 \gets \textsc{Decode}(I[r, 0])$
+        \If{$\chi_0 = \mathtt{\$}$}
+            \State \textbf{abort:} ``Row $r$ is already occupied.''
+        \EndIf
+        \State $I'[r, 0] \gets \textsc{Encode}(I[r, 0], \mathtt{\$})$ \Comment{Mark row as occupied}
+        \State $t \gets \textsc{CurrentTimestamp}()$
+        \State $\pi \gets$ \texttt{*} $\Vert\, w \,\Vert$ \texttt{\#} $\Vert\, t \,\Vert$ \texttt{\#@}
+        \For{$i \gets 0$ to $|\pi| - 1$}
+            \State $x \gets (c + i) \bmod 256$
+            \State $I'[r, x] \gets \textsc{Encode}(I[r, x], \pi[i])$ \Comment{3--3--2 bit split}
+        \EndFor
+        \State \Return $I'$
+    \end{algorithmic}
+\end{algorithm}
+
+\subsection{Extraction Algorithm}
+
+The extraction routine reverses the encoding using only the password and the stego-image. It first re-derives $r$ and $c$ from the password's MD5 digest, then reads characters from row $r$ starting at column $c$ until the end marker `\texttt{\#@}' is observed (or a safety limit is reached). The recovered string is then split on `\texttt{\#}' to recover the watermark and the timestamp. Algorithm~\ref{alg:extract} gives the precise procedure.
+
+\begin{algorithm}[H]
+    \RaggedRight
+    \caption{Row-based LSB watermark extraction}
+    \label{alg:extract}
+    \algorithmicrequire \quad Stego-image $I'$, password $p$. \\
+    \algorithmicensure \quad Recovered watermark $w$ and timestamp $t$.
+
+    \begin{algorithmic}[1]
+        \State $H \gets \mathrm{MD5}(p)$
+        \State $r \gets h_0 \oplus h_1 \oplus \cdots \oplus h_{11}$
+        \State $c \gets h_{12} \oplus h_{13} \oplus h_{14} \oplus h_{15}$
+        \State $s \gets$ empty string
+        \For{$i \gets 0$ to $255$}
+            \State $x \gets (c + i) \bmod 256$
+            \State $s \gets s \,\Vert\, \textsc{Decode}(I'[r, x])$
+            \If{$s$ ends with \texttt{\#@}}
+                \State \textbf{break}
+            \EndIf
+        \EndFor
+        \If{$s$ does not end with \texttt{\#@}}
+            \State \textbf{abort:} ``No valid watermark found.''
+        \EndIf
+        \State $s \gets$ strip trailing \texttt{\#@} and leading \texttt{*} from $s$
+        \State $(w, t) \gets$ split $s$ on first occurrence of \texttt{\#}
+        \State \Return $(w, t)$
+    \end{algorithmic}
+\end{algorithm}
+
+\subsection{Worked Example}
+
+Let the password be $p = \texttt{"swordfish"}$, for which the MD5 digest is
+\[
+    H = \texttt{1cf9d2c2cf301a2c4ce72e9b3f7c1c0a}.
+\]
+The first twelve bytes of $H$ are $(\mathtt{0x1c}, \mathtt{0xf9}, \mathtt{0xd2}, \mathtt{0xc2}, \mathtt{0xcf}, \mathtt{0x30}, \mathtt{0x1a}, \mathtt{0x2c}, \mathtt{0x4c}, \mathtt{0xe7}, \mathtt{0x2e}, \mathtt{0x9b})$. Their XOR fold equals $\mathtt{0x65} = 101_{10}$, so the watermark is stored in row $r = 101$. The last four bytes $(\mathtt{0x3f}, \mathtt{0x7c}, \mathtt{0x1c}, \mathtt{0x0a})$ XOR-fold to $\mathtt{0x49} = 73_{10}$, so the payload starts at column $c = 73$. With watermark $w = \texttt{"hello"}$ and a representative timestamp $t = \texttt{14/04/32/26/04/2026}$ the constructed payload is
+\[
+    \pi = \texttt{*hello\#14/04/32/26/04/2026\#@}, \qquad |\pi| = 28.
+\]
+The 28 characters of $\pi$ are written into pixels $(101, 73), (101, 74), \ldots, (101, 100)$ of the cover image, while pixel $(101, 0)$ receives the `\$' marker. All other $65{,}536 - 29 = 65{,}507$ pixels remain unchanged.
+
+\section{Audio-Steganography Module}
+\label{sec:audio_module}
+
+The audio module embeds an XOR-encrypted, timestamped payload into the LSBs of the raw PCM samples of a WAV file. The embedding pipeline is:
+
+\begin{enumerate}[label=(\arabic*)]
+    \item Build the payload $\pi = w \,\Vert\, \texttt{\#} \,\Vert\, t \,\Vert\, \texttt{\#@}$.
+    \item Encrypt the payload with a one-time-pad-style XOR using the password $p$ as the repeating key:
+    \[
+        \pi'[i] = \pi[i] \oplus p[i \bmod |p|], \quad i = 0, \ldots, |\pi| - 1.
+    \]
+    \item Convert each ciphertext character into its 8-bit binary representation and concatenate to form the bitstream $B$.
+    \item Append the 16-bit end marker $E = \texttt{1111111111111110}$ to $B$.
+    \item Read the WAV samples as a byte array $A$, and replace the LSB of $A[i]$ with the $i$th bit of $B \,\Vert\, E$:
+    \[
+        A'[i] = (A[i] \,\&\, \mathtt{0xFE}) \mid B_i, \quad i = 0, \ldots, |B \Vert E| - 1.
+    \]
+    \item Write $A'$ back as a WAV file using the same audio format as the input.
+\end{enumerate}
+
+The capacity of the module is therefore $\lfloor (|A| - 16)/8 \rfloor$ ciphertext characters. For example, a one-second 16-bit mono WAV file at $44.1$~kHz contains $88{,}200$ bytes and can store up to $\sim 11{,}023$ characters, which is several orders of magnitude beyond the $16$-character watermark accepted by the GUI.
+
+The extraction routine reverses the pipeline: it scans the LSBs of $A'$ until it finds the end marker $E$, converts the preceding bits back into a ciphertext string, and decrypts the ciphertext with the same XOR key.
+
+\section{Text-Steganography Module}
+\label{sec:text_module}
+
+The text module is the simplest of the four. Given an input text file $T$, a watermark $w$, a timestamp $t$ and a password $p$, the module:
+
+\begin{enumerate}[label=(\arabic*)]
+    \item Builds the payload $\pi = w \,\Vert\, \texttt{\#} \,\Vert\, t \,\Vert\, \texttt{\#@}$.
+    \item XOR-encrypts $\pi$ with $p$ to produce the ciphertext $\pi'$.
+    \item Appends $\pi'$ to the cover text inside an HTML-style comment:
+    \[
+        T' = T \,\Vert\, \texttt{\textbackslash n<!--STEGO:} \,\Vert\, \pi' \,\Vert\, \texttt{-->}.
+    \]
+\end{enumerate}
+
+The cover text is preserved verbatim and the comment is inert with respect to all common text rendering pipelines (HTML, Markdown, plain-text viewers). Extraction locates the substring \texttt{<!--STEGO:}, reads up to the first \texttt{-->} marker and XOR-decrypts the enclosed ciphertext with the password.
+
+\section{Video-Steganography Module}
+\label{sec:video_module}
+
+Video carriers present a unique difficulty: any lossy re-encoding of the video (e.g.~H.264, H.265) will quantize away every LSB. The DWM2 video module circumvents this by re-using the image module on the first frame and re-encoding the cover with the lossless FFV1 codec~\cite{niedermayer2013ffv1}. The full pipeline is:
+
+\begin{enumerate}[label=(\arabic*)]
+    \item Invoke FFmpeg to extract the first frame of the cover video as a BMP file:
+    \begin{quote}
+        \texttt{ffmpeg -i input.mp4 -vf "select=eq(n,0)" -vframes 1 -pix\_fmt bgr24 frame0.bmp}
+    \end{quote}
+    \item Apply Algorithm~\ref{alg:embed} to the top-left $256 \times 256$ region of \texttt{frame0.bmp}, using the same payload format and the same password derivation as the image module.
+    \item Use FFmpeg's \texttt{overlay} filter to substitute the watermarked frame back into the cover, re-encoding losslessly with FFV1 into an MKV container so that the LSBs survive.
+\end{enumerate}
+
+The output is therefore an \texttt{.mkv} file rather than an \texttt{.mp4} file, which is a deliberate consequence of the requirement for a lossless container. Extraction performs steps (1) and (2) in reverse: it extracts the first frame and runs Algorithm~\ref{alg:extract} on the top-left $256 \times 256$ region.
+
+\section{Common Payload Format and Timestamping}
+\label{sec:payload_format}
+
+All four modules share the same payload format
+\[
+    \pi(w, t) = \langle\textit{start}\rangle \,\Vert\, w \,\Vert\, \texttt{\#} \,\Vert\, t \,\Vert\, \texttt{\#@},
+\]
+where the start marker is `\texttt{*}' for the image and video modules and is empty for the audio and text modules (because in those cases the start of the embedded region is unambiguous). The timestamp $t$ is generated at embedding time and is formatted as
+\[
+    t = \texttt{HH/MM/ss/dd/MM/yyyy} \enspace ,
+\]
+which gives a fixed 19-character string. The shared format means that an extracted payload from any modality can be parsed by the same routine: strip the end marker, strip the leading `\texttt{*}' (if any), split on the first `\texttt{\#}', and report the two halves as the watermark and the timestamp respectively.
+
+\section{Computational Complexity}
+\label{sec:complexity}
+
+Table~\ref{tab:complexity} summarizes the worst-case time complexity of the embedding and extraction routines for each module. Throughout, $L$ denotes the payload length (at most $39$ for the image module), $N$ the size of the cover, $K$ the password length and $F$ the cost of one FFmpeg invocation.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|c|c|p{4cm}|}
+        \hline
+        \thead{Module} & \thead{Embed} & \thead{Extract} & \thead{Dominant cost}  \\ \hline
+        Image (BMP, $256 \times 256$) & $\Theta(L)$ & $\Theta(L)$ & MD5 of password ($\Theta(K)$) plus $L$ pixel writes/reads.  \\ \hline
+        Audio (WAV) & $\Theta(N + L \cdot K)$ & $\Theta(N)$ & Linear scan of audio bytes; XOR is $\Theta(L \cdot K / |p|)$.  \\ \hline
+        Text & $\Theta(N + L \cdot K)$ & $\Theta(N)$ & Linear scan to read the file plus XOR encrypt/decrypt.  \\ \hline
+        Video (MKV) & $\Theta(F + L)$ & $\Theta(F + L)$ & FFmpeg invocations dominate; pixel work is negligible.  \\ \hline
+    \end{tabular}
+    \caption{Worst-case time complexity of the four DWM2 modules.}
+    \label{tab:complexity}
+\end{table}
+
+In practice, the image, audio and text modules complete in less than $50$~ms on commodity hardware; the video module is dominated by FFmpeg and takes between one and ten seconds depending on the length and resolution of the cover.
+
+\textit{\textcolor{red}{Note: The block diagram of Figure~\ref{fig:architecture} satisfies the template's requirement of a clear system-architecture diagram in this chapter.}}

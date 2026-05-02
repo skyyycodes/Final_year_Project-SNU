@@ -1,0 +1,90 @@
+\chapter{Problem Identification}
+\label{Problem_Identification}
+
+The previous chapter established that the literature on information hiding is rich but fragmented along two dimensions: most published systems address \emph{one} carrier type at a time, and most embed \emph{one} watermark per cover. This chapter formalizes the gap that the proposed DWM2 system is intended to close, defines the threat model under which the system is designed to operate, and lists the resulting functional and non-functional requirements.
+
+\section{Motivating Scenario}
+
+Consider a digital-content owner\,---\,for example, a photographer, a recording artist, a technical-document author or a film studio\,---\,who routinely distributes media files to multiple downstream recipients (clients, distributors, reviewers). The owner needs a single tool that can:
+
+\begin{enumerate}[label=(\arabic*)]
+    \item Stamp every outgoing copy with a \emph{recipient-specific} watermark that survives ordinary handling but cannot be casually erased.
+    \item Embed \emph{several} such watermarks into the same master file, so that one shared master can be customized per recipient without re-rendering the cover.
+    \item Operate uniformly across the four media types that constitute most modern digital content: still images, audio recordings, written documents and video clips.
+    \item Allow the owner to recover any individual watermark, given only the cover file and the password used at embedding time.
+    \item Time-stamp every embedding so that disputes about \emph{when} a particular copy was issued can be settled from the recovered payload alone.
+\end{enumerate}
+
+No off-the-shelf academic system simultaneously satisfies all five requirements, which motivates the design of DWM2.
+
+\section{Formal Statement of the Problem}
+
+Let $C$ denote a cover file drawn from one of the supported carrier types (a $256 \times 256$ BMP image, a WAV audio file, a plain-text file or a video container). Let $\mathcal{W} = \{w_1, w_2, \ldots, w_n\}$ denote a set of $n$ ASCII watermarks with $|w_i| \le 16$, and let $\mathcal{P} = \{p_1, p_2, \ldots, p_n\}$ denote a corresponding set of pairwise-distinct passwords. The embedding operation
+\[
+    E : (C, w_i, p_i) \longmapsto C'_i
+\]
+must produce a stego-cover $C'_i$ that is perceptually indistinguishable from $C$, and the corresponding extraction operation
+\[
+    D : (C'_i, p_i) \longmapsto (w_i, t_i),
+\]
+where $t_i$ is the embedding timestamp, must recover both the watermark and the timestamp exactly. When two passwords $p_i, p_j$ ($i \ne j$) are applied in sequence to the same cover, the system must either embed both watermarks without mutual interference or refuse the second embedding and report a collision.
+
+\section{Threat Model and Assumptions}
+
+The DWM2 system is designed under the following threat model.
+
+\begin{description}
+    \item[Adversary capability.] The adversary may obtain the stego-cover $C'_i$ but does not know any of the embedding passwords $p_i$. The adversary may attempt to read the file with a hex editor, run statistical steganalysis on it or apply standard signal-processing transforms (for example, lossless re-saving, format conversion, or random pixel inspection).
+    \item[Adversary limitations.] The adversary cannot mount a chosen-password attack on the MD5 digest, cannot brute-force the password space (assumed to contain at least $\sim 10^{12}$ candidates), and does not have access to the original cover $C$ for differential analysis.
+    \item[Channel.] The cover is assumed to be transmitted through a \emph{lossless} channel. Lossy re-compression of an image (for example, conversion to JPEG) or of audio (for example, conversion to MP3) is outside the scope of the present system. For video, the system itself enforces a lossless re-encoding using FFV1 to keep the LSBs intact.
+    \item[Trust.] The owner of the embedding password is trusted; the embedding tool itself is assumed to run on a non-compromised machine.
+\end{description}
+
+\section{Design Constraints and Requirements}
+
+The functional requirements that follow from the formal problem and the threat model are summarized in Table~\ref{tab:functional_requirements}, and the corresponding non-functional requirements in Table~\ref{tab:nonfunctional_requirements}.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|p{4cm}|p{8cm}|}
+        \hline
+        \thead{ID} & \thead{Requirement} & \thead{Description}  \\ \hline
+        FR1 & Multi-modal support & The system must embed and extract from BMP image, WAV audio, plain-text and video carriers.  \\ \hline
+        FR2 & Multi-watermark capacity & The image module must support at least $256$ independent watermarks per cover, each protected by its own password.  \\ \hline
+        FR3 & Password-keyed location & The embedding location must be a deterministic but non-trivial function of the password, and must be uniformly distributed over the available slots.  \\ \hline
+        FR4 & Collision detection & A second embedding under a password that maps to an already-occupied slot must be refused with an explanatory message.  \\ \hline
+        FR5 & Timestamping & Every embedded payload must contain the embedding timestamp in a fixed format.  \\ \hline
+        FR6 & Self-delimited payload & The extractor must terminate correctly without prior knowledge of the payload length.  \\ \hline
+        FR7 & GUI front-end & All operations must be exposed through a single Swing GUI with a watermark field, a password field, a log area and per-modality buttons.  \\ \hline
+        FR8 & Algorithmic logging & Every internal step (MD5, XOR fold, binary encoding, per-pixel modification) must be printed to an in-window log for didactic transparency.  \\ \hline
+    \end{tabular}
+    \caption{Functional requirements of the DWM2 system.}
+    \label{tab:functional_requirements}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|p{4cm}|p{8cm}|}
+        \hline
+        \thead{ID} & \thead{Requirement} & \thead{Description}  \\ \hline
+        NFR1 & Imperceptibility & The per-channel pixel perturbation must be at most $\pm 7$ in red and green and $\pm 3$ in blue, well below the just-noticeable-difference threshold of the human visual system.  \\ \hline
+        NFR2 & Performance & Embedding and extraction on a $256 \times 256$ BMP image must complete in less than one second on commodity hardware.  \\ \hline
+        NFR3 & Portability & The system must run on Windows, macOS and Linux with a single Java SE 17 runtime.  \\ \hline
+        NFR4 & Zero external libraries & The image, audio and text modules must rely solely on the Java standard library; the video module may rely on the FFmpeg executable being on the user's PATH.  \\ \hline
+        NFR5 & Determinism & Two embeddings of the same watermark with the same password into the same cover must produce identical stego-covers (modulo the timestamp).  \\ \hline
+    \end{tabular}
+    \caption{Non-functional requirements of the DWM2 system.}
+    \label{tab:nonfunctional_requirements}
+\end{table}
+
+\section{Identified Sub-Problems}
+
+The high-level problem decomposes into the following five sub-problems, each of which is addressed in the proposed methodology of Chapter~\ref{Proposed_Methodology}.
+
+\begin{enumerate}[label=\textbf{SP\arabic*.}]
+    \item \textbf{Password-to-location mapping.} Design a deterministic, uniformly distributed mapping from a variable-length user password to a $(\text{row}, \text{column})$ pair in $\{0, \ldots, 255\}^2$.
+    \item \textbf{Per-pixel character encoding.} Design an encoding of an 8-bit ASCII character into the LSBs of a single 24-bit RGB pixel that minimizes per-channel perturbation and is reversible without side information.
+    \item \textbf{Collision detection.} Design a row-occupation marker that allows the embedder to detect, before writing, whether the selected row is already occupied.
+    \item \textbf{Self-delimited payload.} Design a payload format with explicit start, separator and end markers so that extraction can terminate without a length field.
+    \item \textbf{Multi-modal reuse.} Design audio, text and video modules that share the same payload format and the same password input as the image module, so that the user experience is uniform across all four carriers.
+\end{enumerate}
