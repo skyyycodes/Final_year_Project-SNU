@@ -1,21 +1,11 @@
 \chapter{Problem Identification}
 \label{Problem_Identification}
 
-The previous chapter established that the literature on information hiding is rich but fragmented along two dimensions: most published systems address \emph{one} carrier type at a time, and most embed \emph{one} watermark per cover. This chapter formalizes the gap that the proposed DWM2 system is intended to close, defines the threat model under which the system is designed to operate, and lists the resulting functional and non-functional requirements.
+\section{Problem Statement}
 
-\section{Motivating Scenario}
+Despite substantial progress in information hiding, reliable multi-watermark, multi-modal embedding remains difficult because existing systems are non-uniform across carriers, are tightly coupled to a single embedding location, and are silent in the presence of overwrite collisions. Single-modality LSB pipelines can model perceptual transparency very well, but they remain reactive to the way the cover is used and therefore lag the multi-recipient, multi-medium distribution scenario that motivates the present work.
 
-Consider a digital-content owner\,---\,for example, a photographer, a recording artist, a technical-document author or a film studio\,---\,who routinely distributes media files to multiple downstream recipients (clients, distributors, reviewers). The owner needs a single tool that can:
-
-\begin{enumerate}[label=(\arabic*)]
-    \item Stamp every outgoing copy with a \emph{recipient-specific} watermark that survives ordinary handling but cannot be casually erased.
-    \item Embed \emph{several} such watermarks into the same master file, so that one shared master can be customized per recipient without re-rendering the cover.
-    \item Operate uniformly across the four media types that constitute most modern digital content: still images, audio recordings, written documents and video clips.
-    \item Allow the owner to recover any individual watermark, given only the cover file and the password used at embedding time.
-    \item Time-stamp every embedding so that disputes about \emph{when} a particular copy was issued can be settled from the recovered payload alone.
-\end{enumerate}
-
-No off-the-shelf academic system simultaneously satisfies all five requirements, which motivates the design of DWM2.
+Concretely, consider a digital-content owner (for example, a photographer, a recording artist, a technical-document author or a film studio) who routinely distributes media files to multiple downstream recipients such as clients, distributors and reviewers. The owner needs a single tool that can: (1)~stamp every outgoing copy with a recipient-specific watermark that survives ordinary handling but cannot be casually erased; (2)~embed several such watermarks into the same master file so that one shared master can be customized per recipient without re-rendering the cover; (3)~operate uniformly across the four media types that constitute most modern digital content (still images, audio recordings, written documents and video clips); (4)~allow the owner to recover any individual watermark, given only the cover file and the password used at embedding time; and (5)~time-stamp every embedding so that disputes about \emph{when} a particular copy was issued can be settled from the recovered payload alone. No off-the-shelf academic system simultaneously satisfies all five requirements.
 
 \section{Formal Statement of the Problem}
 
@@ -29,9 +19,45 @@ must produce a stego-cover $C'_i$ that is perceptually indistinguishable from $C
 \]
 where $t_i$ is the embedding timestamp, must recover both the watermark and the timestamp exactly. When two passwords $p_i, p_j$ ($i \ne j$) are applied in sequence to the same cover, the system must either embed both watermarks without mutual interference or refuse the second embedding and report a collision.
 
+\section{Research Gap to be Solved}
+
+From Chapter~\ref{Literature_Survey}, the core unresolved gap is not the absence of powerful LSB algorithms, but the absence of a consistent, leakage-safe integration strategy for combining:
+
+\begin{itemize}
+    \item password-keyed, deterministic location selection,
+    \item multi-watermark capacity inside a single cover,
+    \item explicit collision detection before each embedding, and
+    \item a unified payload format across image, audio, text and video.
+\end{itemize}
+
+Existing work often addresses one or two of these elements, but rarely all four in a reproducible, deployment-oriented pipeline backed by a single graphical front-end.
+
+\section{Why Existing Methods Are Insufficient}
+
+Current single-modality LSB systems underperform when the same cover must hold several recipient-specific marks, or when the same author must publish across image, audio, text, and video. Even more advanced transform-domain schemes still depend on separate preprocessing for each file type, weak alignment between payload format and cover format, and limited collision reporting. As a result, reported gains do not always transfer well to realistic multi-recipient workflows. A tool that embeds one robust watermark per image is not the same as a tool that embeds 256 password-keyed marks per image, refuses overwrites, and uses the same payload format for WAV or Markdown files.
+
+\section{Research Objectives and Hypotheses}
+
+\subsection*{Objectives}
+
+\begin{enumerate}[label=\textbf{O\arabic*.}]
+    \item Build a multi-modal information-hiding workflow that separates GUI logic from per-modality embedding logic and exposes all four carriers behind a single user interface.
+    \item Integrate a password-keyed, MD5-derived location-selection mechanism into the image module, so that up to 256 watermarks may coexist in the same cover.
+    \item Provide an explicit, leakage-safe row-occupation marker that detects collisions before any embedding writes back to the cover.
+    \item Define a single self-delimited timestamped payload format reused by all four modalities so that a single parser recovers the watermark and timestamp regardless of carrier.
+\end{enumerate}
+
+\subsection*{Hypotheses}
+
+\begin{itemize}
+    \item \textbf{H1}: A row-based LSB scheme in which the row index is derived from the first 12 bytes of an MD5 digest of the user's password admits up to 256 password-keyed, mutually non-interfering watermarks per $256 \times 256$ cover, with the row choice approximately uniform over $\{0, \ldots, 255\}$.
+    \item \textbf{H2}: A single sentinel character `\$' embedded at column~0 of every occupied row reliably blocks overwrite collisions on a second embedding under a colliding password, without any additional side channel and at $O(1)$ cost per attempt.
+    \item \textbf{H3}: A self-delimited timestamped payload of the form $\texttt{*}\,w\,\texttt{\#}\,t\,\texttt{\#@}$ enables a single extraction parser to recover both the watermark and the timestamp from any of the four supported modalities, with no per-modality parser specialization.
+\end{itemize}
+
 \section{Threat Model and Assumptions}
 
-The DWM2 system is designed under the following threat model.
+The proposed system is designed under the following threat model.
 
 \begin{description}
     \item[Adversary capability.] The adversary may obtain the stego-cover $C'_i$ but does not know any of the embedding passwords $p_i$. The adversary may attempt to read the file with a hex editor, run statistical steganalysis on it or apply standard signal-processing transforms (for example, lossless re-saving, format conversion, or random pixel inspection).
@@ -58,7 +84,7 @@ The functional requirements that follow from the formal problem and the threat m
         FR7 & GUI front-end & All operations must be exposed through a single Swing GUI with a watermark field, a password field, a log area and per-modality buttons.  \\ \hline
         FR8 & Algorithmic logging & Every internal step (MD5, XOR fold, binary encoding, per-pixel modification) must be printed to an in-window log for didactic transparency.  \\ \hline
     \end{tabular}
-    \caption{Functional requirements of the DWM2 system.}
+    \caption{Functional requirements of the proposed system.}
     \label{tab:functional_requirements}
 \end{table}
 
@@ -73,9 +99,18 @@ The functional requirements that follow from the formal problem and the threat m
         NFR4 & Zero external libraries & The image, audio and text modules must rely solely on the Java standard library; the video module may rely on the FFmpeg executable being on the user's PATH.  \\ \hline
         NFR5 & Determinism & Two embeddings of the same watermark with the same password into the same cover must produce identical stego-covers (modulo the timestamp).  \\ \hline
     \end{tabular}
-    \caption{Non-functional requirements of the DWM2 system.}
+    \caption{Non-functional requirements of the proposed system.}
     \label{tab:nonfunctional_requirements}
 \end{table}
+
+\section{Expected Challenges}
+
+\begin{itemize}
+    \item \textbf{Location uniformity}: deriving a row index $r$ and a column index $c$ that are jointly uniform over $\{0, \ldots, 255\}^2$ from a variable-length user password without leaking either index to an attacker who observes the cover.
+    \item \textbf{Collision sensitivity}: making the row-occupation marker cheap to read but reliable enough to refuse overwrites under realistic password-collision rates.
+    \item \textbf{Modality consistency}: keeping the same payload format across four very different carriers (image pixels, audio samples, text bytes, video frames) without inflating the per-modality logic.
+    \item \textbf{Evaluation realism}: reporting both perceptual quality (PSNR, audible/visual inspection) and run-time on commodity hardware, rather than only one of the two.
+\end{itemize}
 
 \section{Identified Sub-Problems}
 

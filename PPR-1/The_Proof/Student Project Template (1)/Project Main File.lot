@@ -1,0 +1,18 @@
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces Representative evidence in information-hiding literature.}}{9}{table.caption.7}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {3.1}{\ignorespaces Functional requirements of the proposed system.}}{15}{table.caption.8}%
+\contentsline {table}{\numberline {3.2}{\ignorespaces Non-functional requirements of the proposed system.}}{16}{table.caption.9}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {4.1}{\ignorespaces Worst-case time complexity of the four modules in the proposed framework.}}{27}{table.caption.11}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {5.1}{\ignorespaces Hardware and software environment used for the experiments.}}{32}{table.caption.12}%
+\contentsline {table}{\numberline {5.2}{\ignorespaces Image-module embedding results. The same password produces the same $(r, c)$ regardless of the cover, as required.}}{34}{table.caption.13}%
+\contentsline {table}{\numberline {5.3}{\ignorespaces Qualitative comparison of the proposed framework with representative single-modality watermarking systems.}}{36}{table.caption.14}%
+\contentsline {table}{\numberline {5.4}{\ignorespaces Mean wall-clock time per operation, averaged over 100 runs.}}{36}{table.caption.15}%
+\contentsline {table}{\numberline {5.5}{\ignorespaces Comprehensive performance comparison of all four modules in the proposed framework.}}{37}{table.caption.16}%
+\addvspace {10\p@ }
+\providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

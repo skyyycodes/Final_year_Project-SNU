@@ -64,10 +64,10 @@
 \usepackage{amsmath}           % advanced math environments
 \usepackage{amssymb}           % extra mathematical symbols
 \usepackage{amsfonts}          % additional math fonts
-\usepackage{mathrsfs}          % script fonts for math
+% \usepackage{mathrsfs}          % script fonts for math (not used)
 \usepackage{mathtools}         % enhancements to amsmath
-\usepackage[thinc]{esdiff}     % easy derivative notation
-\usepackage{siunitx}           % consistent SI units and numbers
+% \usepackage[thinc]{esdiff}     % derivative notation (not used)
+% \usepackage{siunitx}           % SI units (not used)
 \usepackage{relsize}           %required for \mathlarger
 
 
@@ -90,16 +90,17 @@
 \usepackage{graphicx}          % include graphics/images
 \graphicspath{{./images/}}     % set path for images
 \usepackage[center]{caption}   % better caption formatting
-\usepackage{bicaption}         % Bilingual captions for figures/tables
+% \usepackage{bicaption}         % Bilingual captions (not used; needs extra deps)
 \usepackage{subcaption}        % sub-figures/sub-tables with captions
 % \usepackage{subfigure}         % Sub-figures (older, now replaced by subcaption)
 \usepackage{float}             % improved float control (H option)
-\usepackage[inline]{asymptote} % vector graphics (Asymptote language)
+% \usepackage[inline]{asymptote} % Asymptote (not used; not in BasicTeX)
 \usepackage{tikz}              % drawing diagrams
 \usetikzlibrary{arrows,automata} % arrows, automata states
 \usetikzlibrary{calc}          % coordinate calculations in TikZ
-\usepackage{overpic}           % Place LaTeX content over pictures
-\usepackage{epsfig,color}      % EPS figures and colors
+\usetikzlibrary{positioning}   % needed for the architecture diagram
+% \usepackage{overpic}           % Place LaTeX content over pictures (not used)
+\usepackage{color}             % colors (epsfig dropped: not used)
 \usepackage[figuresright]{rotating} % Rotate figures/tables
 %\usepackage{psfig,epsfig}     % Obsolete graphics packages
 
@@ -113,20 +114,20 @@
 
 % =================Document Structure & Utilities=============================
 
-\usepackage{pdfpages}          % include external PDF pages
+% \usepackage{pdfpages}          % include external PDF pages (not used)
 % \usepackage{hyperref}          % hyperlinks and clickable references
 \usepackage{hyperref,url}      % Hyperlinks for references, URLs, DOIs
 \usepackage[section]{placeins} % prevents floats from crossing sections
 \usepackage{eqparbox}          % equal-width boxes for text/math alignment
-\usepackage[misc]{ifsym}       % additional symbols (envelopes, etc.)
+% \usepackage[misc]{ifsym}       % additional symbols (not used)
 \usepackage{mathptmx}          % Times Roman font for text + math
 
 
 % ==================NOTES / ANNOTATIONS====================================
-\usepackage{todonotes}      % Add TODO notes in margin / inline, for \cdots
+% \usepackage{todonotes}      % Add TODO notes in margin / inline (not used)
 
 % ==================GLOSSARY===============================================
-\usepackage[nonumberlist,nogroupskip,xindy]{glossaries} % Glossary & acronyms
+% \usepackage[nonumberlist,nogroupskip,xindy]{glossaries} % Glossary (not used; xindy not in BasicTeX)
 
 % ==================FOOTNOTES==============================================
 \usepackage[bottom]{footmisc}  % Force footnotes to appear at bottom of page
@@ -141,7 +142,7 @@
 
 
 \usepackage{algorithm,algpseudocode}
-\usepackage{textgreek} % Allows Greek letters inside normal text without switching to math mode ($...$).
+% \usepackage{textgreek} % Greek text (not used; LGR encoding font missing in BasicTeX)
 
 \renewcommand{\algorithmicrequire}{\textbf{Input: }}
 \renewcommand{\algorithmicensure}{\textbf{Output: }}

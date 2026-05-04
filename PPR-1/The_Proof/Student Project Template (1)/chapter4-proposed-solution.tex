@@ -1,63 +1,115 @@
 \chapter{Proposed Methodology}
 \label{Proposed_Methodology}
 
-This chapter describes the design and the algorithmic detail of the proposed DWM2 (Digital Water Marking, version 2) system. The chapter is organized in a top-down fashion: Section~\ref{sec:architecture} presents the system architecture and a block diagram of the application; Section~\ref{sec:image_module} details the row-based LSB image-watermarking algorithm; Sections~\ref{sec:audio_module}, \ref{sec:text_module} and~\ref{sec:video_module} describe the audio, text and video modules respectively; Section~\ref{sec:payload_format} formalizes the common payload format; and Section~\ref{sec:complexity} concludes with a worst-case complexity analysis.
+This chapter details the implemented information-hiding pipeline, from system architecture and per-modality embedding/extraction routines to evaluation metrics and implementation details. The chapter is organized in a top-down fashion: Section~\ref{sec:architecture} presents the system architecture and a block diagram of the application; Section~\ref{sec:image_module} details the row-based LSB image-watermarking algorithm; Sections~\ref{sec:audio_module}, \ref{sec:text_module} and~\ref{sec:video_module} describe the audio, text and video modules respectively; Section~\ref{sec:payload_format} formalizes the common payload format; Section~\ref{sec:complexity} performs a worst-case complexity analysis; Section~\ref{sec:metrics} specifies the evaluation metrics used in Chapter~\ref{Experimental_results}; Section~\ref{sec:implementation} lists the implementation environment and reproducibility provisions; and Section~\ref{sec:methodology_summary} summarizes the methodology.
 
-\section{System Architecture}
+\section{System Architecture Overview}
 \label{sec:architecture}
 
-The DWM2 application is implemented in Java SE~17 using the Java Swing toolkit for the graphical user interface. The architecture follows a strict separation between the GUI layer and four self-contained algorithmic modules, one per carrier type, as illustrated in Figure~\ref{fig:architecture}.
+The proposed application is implemented in Java SE~17 using Java Swing for the graphical user interface. The architecture keeps the GUI separate from four carrier-specific modules, as shown in Figure~\ref{fig:architecture}.
 
 \begin{figure}[H]
     \centering
+    \resizebox{\textwidth}{!}{%
     \begin{tikzpicture}[
-        node distance=0.9cm and 1.0cm,
+        node distance=0.95cm and 1.2cm,
         every node/.style={font=\small},
-        box/.style={draw, rounded corners=2pt, minimum width=3cm, minimum height=0.8cm, align=center, fill=blue!5},
-        algo/.style={draw, rounded corners=2pt, minimum width=3.2cm, minimum height=0.8cm, align=center, fill=green!8},
-        helper/.style={draw, rounded corners=2pt, minimum width=3.2cm, minimum height=0.8cm, align=center, fill=orange!10},
-        gui/.style={draw, rounded corners=2pt, minimum width=10.5cm, minimum height=0.9cm, align=center, fill=yellow!15},
-        arrow/.style={->, >=stealth, thick}
+        layer/.style={draw, rounded corners=3pt, text width=12.8cm, minimum height=0.95cm, align=center, fill=gray!10},
+        process/.style={draw, rounded corners=2pt, text width=3.45cm, minimum height=0.9cm, align=center, fill=white},
+        io/.style={draw, rounded corners=8pt, text width=3.6cm, minimum height=0.85cm, align=center, fill=white},
+        note/.style={font=\scriptsize, align=left, text width=2.35cm},
+        arrow/.style={->, >=stealth, semithick}
     ]
-        \node[gui] (gui) {DWM2 Swing GUI \\ (watermark field, password field, image preview, log area, four button rows)};
-        \node[box, below=of gui, xshift=-4.5cm] (img) {Image module \\ (DWM2.java)};
-        \node[box, below=of gui, xshift=-1.5cm] (aud) {Audio module \\ (AudioSteganography)};
-        \node[box, below=of gui, xshift=1.5cm] (txt) {Text module \\ (TextSteganography)};
-        \node[box, below=of gui, xshift=4.5cm] (vid) {Video module \\ (VideoSteganography)};
+        \node[layer] (gui) {\textbf{Swing GUI and Control Layer}\\Watermark input, password input, file loading, action buttons, image preview, and in-window log console};
+        \node[layer, below=of gui] (shared) {\textbf{Shared Processing Layer}\\Payload creation with timestamp, logger callback, and per-modality dispatch from the main application};
 
-        \node[helper, below=of img] (md5) {MD5 + XOR \\ row/col selector};
-        \node[helper, below=of aud] (xor1) {XOR encryption \\ + LSB embed};
-        \node[helper, below=of txt] (xor2) {XOR encryption \\ + comment marker};
-        \node[helper, below=of vid] (ffv1) {FFmpeg + FFV1 \\ frame substitution};
+        % Image branch
+        \node[io, below left=1.5cm and 3.4cm of shared] (imgin) {BMP cover image\\($256 \times 256$)};
+        \node[process, below=of imgin] (imgp1) {MD5 hash of password\\Row and start-column selection};
+        \node[process, below=of imgp1] (imgp2) {Row occupation check\\3--3--2 RGB LSB embedding};
+        \node[io, below=of imgp2] (imgout) {Watermarked BMP\\and extracted watermark};
+        \node[note, left=0.25cm of imgp1.west, anchor=east] {Password chooses\\embedding row and\\starting column};
 
-        \node[algo, below=1.4cm of md5] (out1) {BMP \\ stego-image};
-        \node[algo, below=1.4cm of xor1] (out2) {WAV \\ stego-audio};
-        \node[algo, below=1.4cm of xor2] (out3) {TXT \\ stego-text};
-        \node[algo, below=1.4cm of ffv1] (out4) {MKV \\ stego-video};
+        % Audio branch
+        \node[io, right=1.35cm of imgin] (audin) {WAV audio file};
+        \node[process, below=of audin] (audp1) {Watermark + timestamp\\XOR encryption};
+        \node[process, below=of audp1] (audp2) {Bitstream generation\\LSB substitution in samples};
+        \node[io, below=of audp2] (audout) {Stego WAV\\and recovered message};
+        \node[note, right=0.25cm of audp1.east, anchor=west] {End marker:\\\texttt{1111111111111110}};
 
-        \draw[arrow] (gui) -- (img);
-        \draw[arrow] (gui) -- (aud);
-        \draw[arrow] (gui) -- (txt);
-        \draw[arrow] (gui) -- (vid);
-        \draw[arrow] (img) -- (md5);
-        \draw[arrow] (aud) -- (xor1);
-        \draw[arrow] (txt) -- (xor2);
-        \draw[arrow] (vid) -- (ffv1);
-        \draw[arrow] (md5) -- (out1);
-        \draw[arrow] (xor1) -- (out2);
-        \draw[arrow] (xor2) -- (out3);
-        \draw[arrow] (ffv1) -- (out4);
+        % Text branch
+        \node[io, below right=1.55cm and 3.4cm of shared] (txtin) {Plain-text /\\Markdown file};
+        \node[process, below=of txtin] (txtp1) {Watermark +\\timestamp\\XOR encryption};
+        \node[process, below=of txtp1] (txtp2) {Append encrypted block\\inside \texttt{<!--STEGO:...-->}};
+        \node[io, below=of txtp2] (txtout) {Stego text file\\and recovered message};
+
+        % Video branch
+        \node[io, left=1.35cm of txtin] (vidin) {Input video file};
+        \node[process, below=of vidin] (vidp1) {Extract frame 0 with FFmpeg\\Use top-left $256 \times 256$ region};
+        \node[process, below=of vidp1] (vidp2) {Apply row-based image watermark\\Lossless FFV1 re-encoding};
+        \node[io, below=of vidp2] (vidout) {Stego MKV\\and recovered watermark};
+        \node[note, left=0.2cm of vidp1.west, anchor=east, text width=1.85cm] (vidnote) {Video module\\reuses the\\image algorithm};
+
+        % Shared arrows
+        \draw[arrow] (gui) -- (shared);
+        \draw[arrow] (shared.south west) .. controls +(-1.0,-0.6) and +(0,0.9) .. (imgin.north);
+        \draw[arrow] (shared.south west) .. controls +(0.4,-0.6) and +(0,0.9) .. (audin.north);
+        \draw[arrow] (shared.south east) .. controls +(-0.4,-0.6) and +(0,0.9) .. (vidin.north);
+        \draw[arrow] (shared.south east) .. controls +(1.0,-0.6) and +(0,0.9) .. (txtin.north);
+
+        % Vertical flows
+        \draw[arrow] (imgin) -- (imgp1);
+        \draw[arrow] (imgp1) -- (imgp2);
+        \draw[arrow] (imgp2) -- (imgout);
+
+        \draw[arrow] (audin) -- (audp1);
+        \draw[arrow] (audp1) -- (audp2);
+        \draw[arrow] (audp2) -- (audout);
+
+        \draw[arrow] (txtin) -- (txtp1);
+        \draw[arrow] (txtp1) -- (txtp2);
+        \draw[arrow] (txtp2) -- (txtout);
+
+        \draw[arrow] (vidin) -- (vidp1);
+        \draw[arrow] (vidp1) -- (vidp2);
+        \draw[arrow] (vidp2) -- (vidout);
     \end{tikzpicture}
-    \caption{Block diagram of the DWM2 system. The Swing GUI dispatches the user request to one of four algorithmic modules; each module produces a stego-cover in the appropriate format.}
+    }
+    \caption{System architecture of the proposed watermarking framework. A common Swing-based control layer collects the user input and dispatches the request to four carrier-specific pipelines for image, audio, text, and video processing.}
     \label{fig:architecture}
 \end{figure}
 
-The GUI layer collects the watermark text, the password and the action (\texttt{Load}, \texttt{Embed}, \texttt{Extract}, \texttt{Save}) from the user, dispatches it to the appropriate module, and displays the resulting stego-cover or recovered watermark. Each module is implemented as a stand-alone class with no compile-time dependency on the GUI; the GUI passes a logger callback (a \verb|Consumer<String>|) to the module so that the module can write its progress messages back into the in-window log without referencing any Swing class.
+The architecture consists of four primary components:
+
+\begin{enumerate}
+    \item \textbf{GUI Layer (Swing)}: collects the watermark text, the password and the user action (\texttt{Load}, \texttt{Embed}, \texttt{Extract}, \texttt{Save}) from a single window and dispatches it to the appropriate algorithmic module.
+    \item \textbf{Per-Modality Algorithmic Modules}: four self-contained classes (\texttt{DWM2}, \texttt{AudioSteganography}, \texttt{TextSteganography}, \texttt{VideoSteganography}) that implement the carrier-specific embedding and extraction routines.
+    \item \textbf{Cryptographic Helpers}: an MD5-plus-XOR-fold helper for the image (and video) module, and an XOR-encryption helper for the audio and text modules.
+    \item \textbf{Common Payload Layer}: a shared self-delimited timestamped payload format (Section~\ref{sec:payload_format}) that all four modules read and write.
+\end{enumerate}
+
+This layered strategy lets each module address its carrier-specific challenges while keeping the user experience and the recovered-payload parser uniform. Each module is implemented as a stand-alone class with no compile-time dependency on the GUI; the GUI passes a logger callback (a \verb|Consumer<String>|) to the module so that the module can write its progress messages back into the in-window log without referencing any Swing class.
+
+\subsection{Typical User Flow}
+
+From a user's point of view, the system is intentionally simple. The user opens the application, selects a file, types a short watermark, enters a password, and chooses whether to embed or extract. The same small set of actions is used for image, audio, text, and video. This reduces confusion because the user does not need to switch to a different tool or learn a different sequence of steps for each media type.
+
+During embedding, the GUI first checks that the required inputs are present. It then forwards the request to the correct module based on the selected file. The module builds the payload, performs the carrier-specific embedding, and sends progress messages back to the GUI log. After the operation finishes, the user can preview the result when relevant and save the stego-file to disk.
+
+During extraction, the flow is similar but reversed. The selected module reads the hidden data from the file, reconstructs the payload, and separates the watermark from the timestamp. The recovered values are then shown to the user in the same application window. This symmetry between embedding and extraction is one of the practical strengths of the design.
+
+\subsection{Why the System is Organized this Way}
+
+The architecture is not complicated, but each design choice has a reason behind it. The GUI layer is kept separate so that interface code does not get mixed with watermarking logic. This makes the source code easier to read and also makes testing simpler, because the core methods can be called without starting the full interface.
+
+The shared processing layer exists because some tasks repeat across multiple modules. For example, all modules need to accept a watermark, use a password, generate a payload, and report status messages. Keeping these ideas conceptually grouped helps the project feel like one framework rather than four unrelated mini-programs.
+
+At the same time, each carrier needs its own embedding rule. Pixels, audio samples, text comments, and video frames behave very differently. Trying to force them into one low-level algorithm would make the code harder to follow and would not improve the result. For this reason, the project uses a common high-level structure with separate low-level implementations.
 
 \section{Image-Watermarking Module}
 \label{sec:image_module}
 
-The image-watermarking module is the heart of the DWM2 system. It accepts a $256 \times 256$ BMP cover image, a watermark string of at most $16$ ASCII characters and a non-empty password, and produces a stego-image that contains the watermark in the LSBs of one row of pixels.
+The image-watermarking module is the main part of the proposed framework. It accepts a $256 \times 256$ BMP cover image, a watermark string of at most $16$ ASCII characters, and a non-empty password. It then produces a stego-image that stores the watermark in the LSBs of one row of pixels.
 
 \subsection{Password-to-Location Mapping}
 \label{sec:password_mapping}
@@ -67,7 +119,7 @@ Let $p$ denote the user-supplied password and let $H = \mathrm{MD5}(p)$ denote i
     r &= h_0 \oplus h_1 \oplus h_2 \oplus \cdots \oplus h_{11}, \label{eq:row}\\
     c &= h_{12} \oplus h_{13} \oplus h_{14} \oplus h_{15}. \label{eq:col}
 \end{align}
-Because each $h_i \in \{0, \ldots, 255\}$ and XOR is closed on this set, both $r$ and $c$ lie in $\{0, \ldots, 255\}$. Under the standard random-oracle assumption on MD5, both $r$ and $c$ are uniformly distributed, and the joint distribution $(r, c)$ is uniform over the $256 \times 256 = 65{,}536$ possible $(\text{row}, \text{starting column})$ combinations. The use of disjoint slices of the digest ensures that $r$ and $c$ are statistically independent.
+Because each $h_i \in \{0, \ldots, 255\}$ and XOR is closed on this set, both $r$ and $c$ lie in $\{0, \ldots, 255\}$. In practical terms, this means the password can spread different watermarks across many possible row and column pairs instead of always placing them in one fixed position. Using separate parts of the digest for $r$ and $c$ also helps the row choice and the starting-column choice behave like two separate decisions.
 
 \subsection{Per-Pixel 3--3--2 Bit Split}
 
@@ -196,6 +248,8 @@ The capacity of the module is therefore $\lfloor (|A| - 16)/8 \rfloor$ ciphertex
 
 The extraction routine reverses the pipeline: it scans the LSBs of $A'$ until it finds the end marker $E$, converts the preceding bits back into a ciphertext string, and decrypts the ciphertext with the same XOR key.
 
+This module was kept deliberately simple. WAV was chosen because it exposes raw PCM samples directly, so the embedding rule is easy to implement and easy to explain. This makes the module suitable for demonstration and testing, even though it is not meant to be robust against later compression into formats such as MP3 or AAC.
+
 \section{Text-Steganography Module}
 \label{sec:text_module}
 
@@ -212,10 +266,12 @@ The text module is the simplest of the four. Given an input text file $T$, a wat
 
 The cover text is preserved verbatim and the comment is inert with respect to all common text rendering pipelines (HTML, Markdown, plain-text viewers). Extraction locates the substring \texttt{<!--STEGO:}, reads up to the first \texttt{-->} marker and XOR-decrypts the enclosed ciphertext with the password.
 
+In practical terms, the text module behaves more like hidden metadata attachment than classical linguistic steganography. It does not try to alter writing style, change words, or generate natural-language cover text. That choice was intentional. A comment-based design is much easier to verify during testing and much less likely to damage the visible content of the document.
+
 \section{Video-Steganography Module}
 \label{sec:video_module}
 
-Video carriers present a unique difficulty: any lossy re-encoding of the video (e.g.~H.264, H.265) will quantize away every LSB. The DWM2 video module circumvents this by re-using the image module on the first frame and re-encoding the cover with the lossless FFV1 codec~\cite{niedermayer2013ffv1}. The full pipeline is:
+Video files are harder to handle because any lossy re-encoding step (for example H.264 or H.265) can destroy the LSB values. The video module avoids this by reusing the image module on the first frame and then re-encoding the cover with the lossless FFV1 codec~\cite{niedermayer2013ffv1}. The full pipeline is:
 
 \begin{enumerate}[label=(\arabic*)]
     \item Invoke FFmpeg to extract the first frame of the cover video as a BMP file:
@@ -227,6 +283,8 @@ Video carriers present a unique difficulty: any lossy re-encoding of the video (
 \end{enumerate}
 
 The output is therefore an \texttt{.mkv} file rather than an \texttt{.mp4} file, which is a deliberate consequence of the requirement for a lossless container. Extraction performs steps (1) and (2) in reverse: it extracts the first frame and runs Algorithm~\ref{alg:extract} on the top-left $256 \times 256$ region.
+
+This approach is a practical compromise. Full video watermarking is a large problem on its own, especially when compression, frame prediction, and temporal consistency are considered. By reusing the image algorithm on a single frame, the project keeps the video module understandable and consistent with the rest of the framework. The trade-off is that robustness remains limited, which is discussed later in the report.
 
 \section{Common Payload Format and Timestamping}
 \label{sec:payload_format}
@@ -256,10 +314,91 @@ Table~\ref{tab:complexity} summarizes the worst-case time complexity of the embe
         Text & $\Theta(N + L \cdot K)$ & $\Theta(N)$ & Linear scan to read the file plus XOR encrypt/decrypt.  \\ \hline
         Video (MKV) & $\Theta(F + L)$ & $\Theta(F + L)$ & FFmpeg invocations dominate; pixel work is negligible.  \\ \hline
     \end{tabular}
-    \caption{Worst-case time complexity of the four DWM2 modules.}
+    \caption{Worst-case time complexity of the four modules in the proposed framework.}
     \label{tab:complexity}
 \end{table}
 
 In practice, the image, audio and text modules complete in less than $50$~ms on commodity hardware; the video module is dominated by FFmpeg and takes between one and ten seconds depending on the length and resolution of the cover.
+
+\section{Evaluation Metrics}
+\label{sec:metrics}
+
+We use several evaluation measures to fully characterize the proposed system and to compare it against representative single-modality baselines.
+
+\subsection{Perceptual-Quality Metrics}
+
+\textbf{1. Mean Squared Error (MSE).}
+\begin{equation}
+    \mathrm{MSE} = \frac{1}{N}\sum_{i=1}^{N}(c_i - c'_i)^2,
+\end{equation}
+where $c_i$ and $c'_i$ are the cover and stego sample values respectively and $N$ is the number of samples (pixels for images, samples for audio). MSE is reported in the same numeric units as the cover; for an 8-bit channel it lies in $[0, 65{,}025]$.
+
+\textbf{2. Peak Signal-to-Noise Ratio (PSNR).}
+\begin{equation}
+    \mathrm{PSNR} = 10 \cdot \log_{10}\!\left(\frac{255^2}{\mathrm{MSE}}\right) \enspace \text{[dB]}.
+\end{equation}
+PSNR is the standard imperceptibility measure for spatial-domain watermarking; values above $40$~dB are conventionally considered indistinguishable from the cover.
+
+\textbf{3. Per-Channel Perturbation Bound.} The 3--3--2 bit split guarantees a deterministic upper bound of $\pm 7$ on the red and green channels and $\pm 3$ on the blue channel; this is reported alongside MSE/PSNR as a worst-case quality guarantee.
+
+\subsection{Capacity Metrics}
+
+\textbf{4. Co-Existing-Watermark Capacity.} The number of password-keyed marks that can be embedded into the same cover before the row-occupation marker refuses an embedding. The theoretical maximum for the image module is $256$.
+
+\textbf{5. Per-Cover Payload Length.} The maximum number of ASCII characters that the system embeds per cover (image: $39$; audio: $\sim 11{,}023$ per second of WAV; text: bounded only by the cover size).
+
+\subsection{Correctness Metrics}
+
+\textbf{6. Bit-Exact Recovery.} Whether the recovered $(w, t)$ pair matches the input $(w, t)$ exactly, computed as a binary success/failure indicator across the test corpus.
+
+\textbf{7. Collision-Detection Reliability.} Whether the row-occupation marker correctly refuses an embedding under a colliding password, computed as the fraction of correctly refused attempts out of the total deliberate-collision attempts.
+
+\subsection{Run-Time Metrics}
+
+\textbf{8. Wall-Clock Embed/Extract Time.} The mean elapsed time, in milliseconds, of one embedding or extraction call, averaged over $100$ runs on the same cover. This metric is critical because it determines whether the system is fast enough to be used interactively from a Swing GUI.
+
+\subsection{Comparison Protocol}
+
+We compare the implemented system against four representative single-modality LSB and transform-domain baselines from the literature: Chan and Cheng~\cite{chan2004hiding}, Wu and Tsai~\cite{wu2003steganography}, Cox \emph{et~al.}~\cite{cox1997secure} and Bender \emph{et~al.}~\cite{bender1996techniques}. The comparison is qualitative because the published baselines do not report multi-watermark capacity, password-keyed location selection, or unified payload formats; the qualitative axes are reported in Table~\ref{tab:comparison} of Chapter~\ref{Experimental_results}.
+
+\section{Implementation Details}
+\label{sec:implementation}
+
+\subsection{Development Environment}
+
+The system is implemented in Java SE~17 using only the Java standard library for the image, audio and text modules; the video module shells out to the FFmpeg executable for frame extraction, frame substitution and lossless re-encoding. The GUI uses the Java Swing toolkit. The total source-code size is approximately $1{,}500$ lines spread across four classes.
+
+\subsection{Computational Resources}
+
+All experiments described in Chapter~\ref{Experimental_results} run on commodity hardware (multi-core processor, $16$~GB RAM, $512$~GB SSD). The image, audio and text modules complete an embedding or extraction in under $130$~ms; the video module is dominated by FFmpeg and takes one to ten seconds per clip.
+
+\subsection{Reproducibility}
+
+To make the experiments reproducible, the following provisions are implemented:
+
+\begin{itemize}
+    \item The same MD5 digest of a given password always yields the same $(r, c)$ pair, so two embeddings of the same watermark with the same password into the same cover produce identical stego-covers (up to the timestamp).
+    \item All four modules write a step-by-step log to an in-window console covering the MD5 digest, the XOR folds, the binary encoding of every embedded character, and the per-pixel modification, so that any embedding can be replayed or audited from the log alone.
+    \item The cover-file corpus, password set and watermark set used for the experiments are listed explicitly in Section~\ref{sec:datasets}.
+    \item The GUI source, the four module sources, and the build/run commands are listed in Section~\ref{sec:hwsw}, so that an undergraduate reader can reproduce the entire pipeline with a single \texttt{javac}/\texttt{java} invocation.
+\end{itemize}
+
+\section{Summary}
+\label{sec:methodology_summary}
+
+This chapter provided a complete methodology for the proposed multi-modal information-hiding system, including:
+
+\begin{enumerate}
+    \item \textbf{System Architecture}: a layered Swing-plus-four-modules pipeline that separates GUI logic from per-modality embedding logic and dispatches user actions through a shared payload format.
+    \item \textbf{Image Module}: a row-based LSB scheme with a password-derived $(r, c)$ pair, a 3--3--2 RGB bit split, a row-occupation marker for collision detection, and a self-delimited timestamped payload.
+    \item \textbf{Audio Module}: an XOR-encrypted, end-marker-terminated single-bit LSB pipeline on PCM samples.
+    \item \textbf{Text Module}: an XOR-encrypted, comment-marker-delimited block appended to the cover text.
+    \item \textbf{Video Module}: frame-level reuse of the image module followed by lossless FFV1 re-encoding to preserve the LSBs.
+    \item \textbf{Common Payload Format}: a single self-delimited timestamped layout reused across all four carriers.
+    \item \textbf{Evaluation}: a four-axis evaluation protocol (perceptual quality, capacity, correctness, run-time) with a qualitative comparison against representative single-modality baselines.
+    \item \textbf{Implementation}: a $\sim$1{,}500-line Java SE~17 source base with no external library dependencies for the image/audio/text modules and a single FFmpeg dependency for the video module.
+\end{enumerate}
+
+The methodology integrates classical LSB primitives, a cryptographic key-derivation step, and a multi-modal payload contract under a single graphical front-end. The next chapter reports the experimental evaluation that operationalizes the metrics defined in Section~\ref{sec:metrics}.
 
 \textit{\textcolor{red}{Note: The block diagram of Figure~\ref{fig:architecture} satisfies the template's requirement of a clear system-architecture diagram in this chapter.}}

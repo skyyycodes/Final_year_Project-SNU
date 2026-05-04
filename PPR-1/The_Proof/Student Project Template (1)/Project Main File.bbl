@@ -1,0 +1,682 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global/global}
+    \entry{cox2007digital}{book}{}{}
+      \name{author}{5}{}{%
+        {{hash=f1664010ce1fecbbc091d082673bd3e7}{%
+           family={Cox},
+           familyi={C\bibinitperiod},
+           given={Ingemar\bibnamedelima J},
+           giveni={I\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=d7fc353a78bd7b30e3997ed21d154ade}{%
+           family={Miller},
+           familyi={M\bibinitperiod},
+           given={Matthew\bibnamedelima L},
+           giveni={M\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=fd87e17dc9818a954015360e7b26a406}{%
+           family={Bloom},
+           familyi={B\bibinitperiod},
+           given={Jeffrey\bibnamedelima A},
+           giveni={J\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=0b7ff038c1a27c940c01a4fd0cc68365}{%
+           family={Fridrich},
+           familyi={F\bibinitperiod},
+           given={Jessica},
+           giveni={J\bibinitperiod}}}%
+        {{hash=2e49fb654856efd6b3a84601e3174474}{%
+           family={Kalker},
+           familyi={K\bibinitperiod},
+           given={Ton},
+           giveni={T\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Morgan Kaufmann}%
+      }
+      \strng{namehash}{e5a5d18b2d17bc0ee4d46a613f4f3bb2}
+      \strng{fullhash}{7f194c1159aab4c01c94243fcd9896d6}
+      \strng{fullhashraw}{7f194c1159aab4c01c94243fcd9896d6}
+      \strng{bibnamehash}{e5a5d18b2d17bc0ee4d46a613f4f3bb2}
+      \strng{authorbibnamehash}{e5a5d18b2d17bc0ee4d46a613f4f3bb2}
+      \strng{authornamehash}{e5a5d18b2d17bc0ee4d46a613f4f3bb2}
+      \strng{authorfullhash}{7f194c1159aab4c01c94243fcd9896d6}
+      \strng{authorfullhashraw}{7f194c1159aab4c01c94243fcd9896d6}
+      \field{extraname}{1}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{2}
+      \field{title}{Digital Watermarking and Steganography}
+      \field{year}{2007}
+    \endentry
+    \entry{petitcolas1999information}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=0d00c2d290eff4841f5032b392db1e00}{%
+           family={Petitcolas},
+           familyi={P\bibinitperiod},
+           given={Fabien\bibnamedelimb A\bibnamedelima P},
+           giveni={F\bibinitperiod\bibinitdelim A\bibinitperiod\bibinitdelim P\bibinitperiod}}}%
+        {{hash=0496e0f930cf8ad164981c51cafb41f2}{%
+           family={Anderson},
+           familyi={A\bibinitperiod},
+           given={Ross\bibnamedelima J},
+           giveni={R\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=1e30b2e8d7ac99eb386bd354060de87b}{%
+           family={Kuhn},
+           familyi={K\bibinitperiod},
+           given={Markus\bibnamedelima G},
+           giveni={M\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{df77bb1fe3e6e5fb8e303096147899b6}
+      \strng{fullhash}{df77bb1fe3e6e5fb8e303096147899b6}
+      \strng{fullhashraw}{df77bb1fe3e6e5fb8e303096147899b6}
+      \strng{bibnamehash}{df77bb1fe3e6e5fb8e303096147899b6}
+      \strng{authorbibnamehash}{df77bb1fe3e6e5fb8e303096147899b6}
+      \strng{authornamehash}{df77bb1fe3e6e5fb8e303096147899b6}
+      \strng{authorfullhash}{df77bb1fe3e6e5fb8e303096147899b6}
+      \strng{authorfullhashraw}{df77bb1fe3e6e5fb8e303096147899b6}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Proceedings of the IEEE}
+      \field{number}{7}
+      \field{title}{Information hiding-a survey}
+      \field{volume}{87}
+      \field{year}{1999}
+      \field{pages}{1062\bibrangedash 1078}
+      \range{pages}{17}
+    \endentry
+    \entry{johnson1998exploring}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=f110024db026920c07e18df8b02518fe}{%
+           family={Johnson},
+           familyi={J\bibinitperiod},
+           given={Neil\bibnamedelima F},
+           giveni={N\bibinitperiod\bibinitdelim F\bibinitperiod}}}%
+        {{hash=f21aa520ad69374e7b6d40b5c0891da7}{%
+           family={Jajodia},
+           familyi={J\bibinitperiod},
+           given={Sushil},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{1583c7a142e80c956dde0c380f700dd2}
+      \strng{fullhash}{1583c7a142e80c956dde0c380f700dd2}
+      \strng{fullhashraw}{1583c7a142e80c956dde0c380f700dd2}
+      \strng{bibnamehash}{1583c7a142e80c956dde0c380f700dd2}
+      \strng{authorbibnamehash}{1583c7a142e80c956dde0c380f700dd2}
+      \strng{authornamehash}{1583c7a142e80c956dde0c380f700dd2}
+      \strng{authorfullhash}{1583c7a142e80c956dde0c380f700dd2}
+      \strng{authorfullhashraw}{1583c7a142e80c956dde0c380f700dd2}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Computer}
+      \field{number}{2}
+      \field{title}{Exploring steganography: Seeing the unseen}
+      \field{volume}{31}
+      \field{year}{1998}
+      \field{pages}{26\bibrangedash 34}
+      \range{pages}{9}
+    \endentry
+    \entry{chan2004hiding}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=e9f9d621eeb0e471f507616d67a84f28}{%
+           family={Chan},
+           familyi={C\bibinitperiod},
+           given={Chi-Kwong},
+           giveni={C\bibinithyphendelim K\bibinitperiod}}}%
+        {{hash=289d0cd72e6d2a33e4e24e46bf671a4b}{%
+           family={Cheng},
+           familyi={C\bibinitperiod},
+           given={Lee-Ming},
+           giveni={L\bibinithyphendelim M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Elsevier}%
+      }
+      \strng{namehash}{d04e1c4f809962d8f567ccf6f2bde94c}
+      \strng{fullhash}{d04e1c4f809962d8f567ccf6f2bde94c}
+      \strng{fullhashraw}{d04e1c4f809962d8f567ccf6f2bde94c}
+      \strng{bibnamehash}{d04e1c4f809962d8f567ccf6f2bde94c}
+      \strng{authorbibnamehash}{d04e1c4f809962d8f567ccf6f2bde94c}
+      \strng{authornamehash}{d04e1c4f809962d8f567ccf6f2bde94c}
+      \strng{authorfullhash}{d04e1c4f809962d8f567ccf6f2bde94c}
+      \strng{authorfullhashraw}{d04e1c4f809962d8f567ccf6f2bde94c}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Pattern Recognition}
+      \field{number}{3}
+      \field{title}{Hiding data in images by simple LSB substitution}
+      \field{volume}{37}
+      \field{year}{2004}
+      \field{pages}{469\bibrangedash 474}
+      \range{pages}{6}
+    \endentry
+    \entry{bender1996techniques}{inproceedings}{}{}
+      \name{author}{4}{}{%
+        {{hash=927124955747b3f6d5ef0940f1b688df}{%
+           family={Bender},
+           familyi={B\bibinitperiod},
+           given={Walter},
+           giveni={W\bibinitperiod}}}%
+        {{hash=828bfc82ec84e662416bf8ac94e4f3a5}{%
+           family={Gruhl},
+           familyi={G\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=a02ee71ba4000ff538550d6668a07332}{%
+           family={Morimoto},
+           familyi={M\bibinitperiod},
+           given={Norishige},
+           giveni={N\bibinitperiod}}}%
+        {{hash=c9a19845d9490aa1332bedd96d6469c4}{%
+           family={Lu},
+           familyi={L\bibinitperiod},
+           given={Anthony},
+           giveni={A\bibinitperiod}}}%
+      }
+      \list{organization}{1}{%
+        {IBM}%
+      }
+      \strng{namehash}{22d94c4896ba34f33cff625883edbf49}
+      \strng{fullhash}{9cad8d6cb5f1b55826c465546de59b48}
+      \strng{fullhashraw}{9cad8d6cb5f1b55826c465546de59b48}
+      \strng{bibnamehash}{22d94c4896ba34f33cff625883edbf49}
+      \strng{authorbibnamehash}{22d94c4896ba34f33cff625883edbf49}
+      \strng{authornamehash}{22d94c4896ba34f33cff625883edbf49}
+      \strng{authorfullhash}{9cad8d6cb5f1b55826c465546de59b48}
+      \strng{authorfullhashraw}{9cad8d6cb5f1b55826c465546de59b48}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{IBM Systems Journal}
+      \field{number}{3.4}
+      \field{title}{Techniques for data hiding}
+      \field{volume}{35}
+      \field{year}{1996}
+      \field{pages}{313\bibrangedash 336}
+      \range{pages}{24}
+    \endentry
+    \entry{morkel2005overview}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=7e722ccaef13ee7270e4896b14b8450c}{%
+           family={Morkel},
+           familyi={M\bibinitperiod},
+           given={Tayana},
+           giveni={T\bibinitperiod}}}%
+        {{hash=5ce81d41db620a99cc32ed0c2b17fe1d}{%
+           family={Eloff},
+           familyi={E\bibinitperiod},
+           given={Jan\bibnamedelimb H\bibnamedelima P},
+           giveni={J\bibinitperiod\bibinitdelim H\bibinitperiod\bibinitdelim P\bibinitperiod}}}%
+        {{hash=037a05e47645c92d0137f9c0b782fc59}{%
+           family={Olivier},
+           familyi={O\bibinitperiod},
+           given={Martin\bibnamedelima S},
+           giveni={M\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+      }
+      \strng{namehash}{ba637ebe18f596adae93a09df55bc854}
+      \strng{fullhash}{ba637ebe18f596adae93a09df55bc854}
+      \strng{fullhashraw}{ba637ebe18f596adae93a09df55bc854}
+      \strng{bibnamehash}{ba637ebe18f596adae93a09df55bc854}
+      \strng{authorbibnamehash}{ba637ebe18f596adae93a09df55bc854}
+      \strng{authornamehash}{ba637ebe18f596adae93a09df55bc854}
+      \strng{authorfullhash}{ba637ebe18f596adae93a09df55bc854}
+      \strng{authorfullhashraw}{ba637ebe18f596adae93a09df55bc854}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Proceedings of the Fifth Annual Information Security South Africa Conference}
+      \field{title}{An overview of image steganography}
+      \field{year}{2005}
+      \field{pages}{1\bibrangedash 11}
+      \range{pages}{11}
+    \endentry
+    \entry{provos2003hide}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=60b1af3e10b3553c9b4eb4055120912c}{%
+           family={Provos},
+           familyi={P\bibinitperiod},
+           given={Niels},
+           giveni={N\bibinitperiod}}}%
+        {{hash=c179f12c0a71dc43d592b6fee0c176f8}{%
+           family={Honeyman},
+           familyi={H\bibinitperiod},
+           given={Peter},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{c3ed1bd09feb9ef4964b5084b5e8c249}
+      \strng{fullhash}{c3ed1bd09feb9ef4964b5084b5e8c249}
+      \strng{fullhashraw}{c3ed1bd09feb9ef4964b5084b5e8c249}
+      \strng{bibnamehash}{c3ed1bd09feb9ef4964b5084b5e8c249}
+      \strng{authorbibnamehash}{c3ed1bd09feb9ef4964b5084b5e8c249}
+      \strng{authornamehash}{c3ed1bd09feb9ef4964b5084b5e8c249}
+      \strng{authorfullhash}{c3ed1bd09feb9ef4964b5084b5e8c249}
+      \strng{authorfullhashraw}{c3ed1bd09feb9ef4964b5084b5e8c249}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Security \& Privacy}
+      \field{number}{3}
+      \field{title}{Hide and seek: An introduction to steganography}
+      \field{volume}{1}
+      \field{year}{2003}
+      \field{pages}{32\bibrangedash 44}
+      \range{pages}{13}
+    \endentry
+    \entry{fridrich2001detecting}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=0b7ff038c1a27c940c01a4fd0cc68365}{%
+           family={Fridrich},
+           familyi={F\bibinitperiod},
+           given={Jessica},
+           giveni={J\bibinitperiod}}}%
+        {{hash=fc51bff58ab51b5b547dede064993421}{%
+           family={Goljan},
+           familyi={G\bibinitperiod},
+           given={Miroslav},
+           giveni={M\bibinitperiod}}}%
+        {{hash=3943dbdcbcb6d6cc1861ad4c6102bea5}{%
+           family={Du},
+           familyi={D\bibinitperiod},
+           given={Rui},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{b67f8006dc29e2bb574e3667a1465aa6}
+      \strng{fullhash}{b67f8006dc29e2bb574e3667a1465aa6}
+      \strng{fullhashraw}{b67f8006dc29e2bb574e3667a1465aa6}
+      \strng{bibnamehash}{b67f8006dc29e2bb574e3667a1465aa6}
+      \strng{authorbibnamehash}{b67f8006dc29e2bb574e3667a1465aa6}
+      \strng{authornamehash}{b67f8006dc29e2bb574e3667a1465aa6}
+      \strng{authorfullhash}{b67f8006dc29e2bb574e3667a1465aa6}
+      \strng{authorfullhashraw}{b67f8006dc29e2bb574e3667a1465aa6}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE MultiMedia}
+      \field{number}{4}
+      \field{title}{Detecting LSB steganography in color and gray-scale images}
+      \field{volume}{8}
+      \field{year}{2001}
+      \field{pages}{22\bibrangedash 28}
+      \range{pages}{7}
+    \endentry
+    \entry{wu2003steganography}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=51a07b0a666d9337f67e881cef5a7a99}{%
+           family={Wu},
+           familyi={W\bibinitperiod},
+           given={Da-Chun},
+           giveni={D\bibinithyphendelim C\bibinitperiod}}}%
+        {{hash=9fda404c1a164e593ba77018a0c5703b}{%
+           family={Tsai},
+           familyi={T\bibinitperiod},
+           given={Wen-Hsiang},
+           giveni={W\bibinithyphendelim H\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Elsevier}%
+      }
+      \strng{namehash}{c1c3ed1995666d5efebc7464c3895a2e}
+      \strng{fullhash}{c1c3ed1995666d5efebc7464c3895a2e}
+      \strng{fullhashraw}{c1c3ed1995666d5efebc7464c3895a2e}
+      \strng{bibnamehash}{c1c3ed1995666d5efebc7464c3895a2e}
+      \strng{authorbibnamehash}{c1c3ed1995666d5efebc7464c3895a2e}
+      \strng{authornamehash}{c1c3ed1995666d5efebc7464c3895a2e}
+      \strng{authorfullhash}{c1c3ed1995666d5efebc7464c3895a2e}
+      \strng{authorfullhashraw}{c1c3ed1995666d5efebc7464c3895a2e}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Pattern Recognition Letters}
+      \field{number}{9-10}
+      \field{title}{A steganographic method for images by pixel-value differencing}
+      \field{volume}{24}
+      \field{year}{2003}
+      \field{pages}{1613\bibrangedash 1626}
+      \range{pages}{14}
+    \endentry
+    \entry{cox1997secure}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=f1664010ce1fecbbc091d082673bd3e7}{%
+           family={Cox},
+           familyi={C\bibinitperiod},
+           given={Ingemar\bibnamedelima J},
+           giveni={I\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=4591268c67f1c3a2dddd96c8b3457967}{%
+           family={Kilian},
+           familyi={K\bibinitperiod},
+           given={Joe},
+           giveni={J\bibinitperiod}}}%
+        {{hash=c7c1099a6fd425d7be8658e0a3bd02b0}{%
+           family={Leighton},
+           familyi={L\bibinitperiod},
+           given={F\bibnamedelima Thomson},
+           giveni={F\bibinitperiod\bibinitdelim T\bibinitperiod}}}%
+        {{hash=35976df08606fc6c13811b16e1c4deba}{%
+           family={Shamoon},
+           familyi={S\bibinitperiod},
+           given={Talal},
+           giveni={T\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{e5a5d18b2d17bc0ee4d46a613f4f3bb2}
+      \strng{fullhash}{7bfcb994d800fdd190d32287bb791a72}
+      \strng{fullhashraw}{7bfcb994d800fdd190d32287bb791a72}
+      \strng{bibnamehash}{e5a5d18b2d17bc0ee4d46a613f4f3bb2}
+      \strng{authorbibnamehash}{e5a5d18b2d17bc0ee4d46a613f4f3bb2}
+      \strng{authornamehash}{e5a5d18b2d17bc0ee4d46a613f4f3bb2}
+      \strng{authorfullhash}{7bfcb994d800fdd190d32287bb791a72}
+      \strng{authorfullhashraw}{7bfcb994d800fdd190d32287bb791a72}
+      \field{extraname}{2}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Transactions on Image Processing}
+      \field{number}{12}
+      \field{title}{Secure spread spectrum watermarking for multimedia}
+      \field{volume}{6}
+      \field{year}{1997}
+      \field{pages}{1673\bibrangedash 1687}
+      \range{pages}{15}
+    \endentry
+    \entry{podilchuk2001digital}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=a9f76c367cc115f41b0ffd154a1a8baa}{%
+           family={Podilchuk},
+           familyi={P\bibinitperiod},
+           given={Christine\bibnamedelima I},
+           giveni={C\bibinitperiod\bibinitdelim I\bibinitperiod}}}%
+        {{hash=b787e4c619bfeee3fc457e0a3875139b}{%
+           family={Delp},
+           familyi={D\bibinitperiod},
+           given={Edward\bibnamedelima J},
+           giveni={E\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{bd66de70c0c5f3ca1382df21dd4c7909}
+      \strng{fullhash}{bd66de70c0c5f3ca1382df21dd4c7909}
+      \strng{fullhashraw}{bd66de70c0c5f3ca1382df21dd4c7909}
+      \strng{bibnamehash}{bd66de70c0c5f3ca1382df21dd4c7909}
+      \strng{authorbibnamehash}{bd66de70c0c5f3ca1382df21dd4c7909}
+      \strng{authornamehash}{bd66de70c0c5f3ca1382df21dd4c7909}
+      \strng{authorfullhash}{bd66de70c0c5f3ca1382df21dd4c7909}
+      \strng{authorfullhashraw}{bd66de70c0c5f3ca1382df21dd4c7909}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Signal Processing Magazine}
+      \field{number}{4}
+      \field{title}{Digital watermarking: algorithms and applications}
+      \field{volume}{18}
+      \field{year}{2001}
+      \field{pages}{33\bibrangedash 46}
+      \range{pages}{14}
+    \endentry
+    \entry{cvejic2004increasing}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=b1223083abbc461e73689e123aa50115}{%
+           family={Cvejic},
+           familyi={C\bibinitperiod},
+           given={Nedeljko},
+           giveni={N\bibinitperiod}}}%
+        {{hash=da42bc853f0776a30831b77e473e2e37}{%
+           family={Seppänen},
+           familyi={S\bibinitperiod},
+           given={Tapio},
+           giveni={T\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{451e582a4638855e064f2c657f870661}
+      \strng{fullhash}{451e582a4638855e064f2c657f870661}
+      \strng{fullhashraw}{451e582a4638855e064f2c657f870661}
+      \strng{bibnamehash}{451e582a4638855e064f2c657f870661}
+      \strng{authorbibnamehash}{451e582a4638855e064f2c657f870661}
+      \strng{authornamehash}{451e582a4638855e064f2c657f870661}
+      \strng{authorfullhash}{451e582a4638855e064f2c657f870661}
+      \strng{authorfullhashraw}{451e582a4638855e064f2c657f870661}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Workshop on Multimedia Signal Processing}
+      \field{title}{Increasing the capacity of LSB-based audio steganography}
+      \field{year}{2002}
+      \field{pages}{336\bibrangedash 338}
+      \range{pages}{3}
+    \endentry
+    \entry{singh2013survey}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=7b12d0dbab5d09a79866c63f7db43387}{%
+           family={Singh},
+           familyi={S\bibinitperiod},
+           given={Prabhishek},
+           giveni={P\bibinitperiod}}}%
+        {{hash=4ef73ccaee4f363adc770316f8bf4e37}{%
+           family={Chadha},
+           familyi={C\bibinitperiod},
+           given={Roshan\bibnamedelima Singh},
+           giveni={R\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+      }
+      \strng{namehash}{4020fbf433e3b7bfd2dbb96ac7731673}
+      \strng{fullhash}{4020fbf433e3b7bfd2dbb96ac7731673}
+      \strng{fullhashraw}{4020fbf433e3b7bfd2dbb96ac7731673}
+      \strng{bibnamehash}{4020fbf433e3b7bfd2dbb96ac7731673}
+      \strng{authorbibnamehash}{4020fbf433e3b7bfd2dbb96ac7731673}
+      \strng{authornamehash}{4020fbf433e3b7bfd2dbb96ac7731673}
+      \strng{authorfullhash}{4020fbf433e3b7bfd2dbb96ac7731673}
+      \strng{authorfullhashraw}{4020fbf433e3b7bfd2dbb96ac7731673}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{International Journal of Engineering and Innovative Technology}
+      \field{number}{9}
+      \field{title}{A survey of digital watermarking techniques, applications and attacks}
+      \field{volume}{2}
+      \field{year}{2013}
+      \field{pages}{165\bibrangedash 175}
+      \range{pages}{11}
+    \endentry
+    \entry{mstafa2017comprehensive}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=916b2d8cc8ecce7d03192a2ceb1483c0}{%
+           family={Mstafa},
+           familyi={M\bibinitperiod},
+           given={Ramadhan\bibnamedelima J},
+           giveni={R\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=8f5a6e3932a84090129c8ac2dfaff5aa}{%
+           family={Elleithy},
+           familyi={E\bibinitperiod},
+           given={Khaled\bibnamedelima M},
+           giveni={K\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{92cc4f5cfb635fcb0b7ec0d0b55cb50d}
+      \strng{fullhash}{92cc4f5cfb635fcb0b7ec0d0b55cb50d}
+      \strng{fullhashraw}{92cc4f5cfb635fcb0b7ec0d0b55cb50d}
+      \strng{bibnamehash}{92cc4f5cfb635fcb0b7ec0d0b55cb50d}
+      \strng{authorbibnamehash}{92cc4f5cfb635fcb0b7ec0d0b55cb50d}
+      \strng{authornamehash}{92cc4f5cfb635fcb0b7ec0d0b55cb50d}
+      \strng{authorfullhash}{92cc4f5cfb635fcb0b7ec0d0b55cb50d}
+      \strng{authorfullhashraw}{92cc4f5cfb635fcb0b7ec0d0b55cb50d}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Multimedia Tools and Applications}
+      \field{title}{A comprehensive survey on video watermarking and steganography techniques}
+      \field{volume}{76}
+      \field{year}{2017}
+      \field{pages}{6705\bibrangedash 6731}
+      \range{pages}{27}
+    \endentry
+    \entry{niedermayer2013ffv1}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=9dca4df2a12b9a5189e3f00b1c491a85}{%
+           family={Niedermayer},
+           familyi={N\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{9dca4df2a12b9a5189e3f00b1c491a85}
+      \strng{fullhash}{9dca4df2a12b9a5189e3f00b1c491a85}
+      \strng{fullhashraw}{9dca4df2a12b9a5189e3f00b1c491a85}
+      \strng{bibnamehash}{9dca4df2a12b9a5189e3f00b1c491a85}
+      \strng{authorbibnamehash}{9dca4df2a12b9a5189e3f00b1c491a85}
+      \strng{authornamehash}{9dca4df2a12b9a5189e3f00b1c491a85}
+      \strng{authorfullhash}{9dca4df2a12b9a5189e3f00b1c491a85}
+      \strng{authorfullhashraw}{9dca4df2a12b9a5189e3f00b1c491a85}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IETF Internet Draft}
+      \field{title}{FFV1 video codec specification}
+      \field{year}{2013}
+    \endentry
+    \entry{rivest1992md5}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=3a964821f97ee17f8bb285bc61c52899}{%
+           family={Rivest},
+           familyi={R\bibinitperiod},
+           given={Ronald\bibnamedelima L},
+           giveni={R\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Internet Engineering Task Force}%
+      }
+      \strng{namehash}{3a964821f97ee17f8bb285bc61c52899}
+      \strng{fullhash}{3a964821f97ee17f8bb285bc61c52899}
+      \strng{fullhashraw}{3a964821f97ee17f8bb285bc61c52899}
+      \strng{bibnamehash}{3a964821f97ee17f8bb285bc61c52899}
+      \strng{authorbibnamehash}{3a964821f97ee17f8bb285bc61c52899}
+      \strng{authornamehash}{3a964821f97ee17f8bb285bc61c52899}
+      \strng{authorfullhash}{3a964821f97ee17f8bb285bc61c52899}
+      \strng{authorfullhashraw}{3a964821f97ee17f8bb285bc61c52899}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{RFC 1321}
+      \field{title}{The MD5 message-digest algorithm}
+      \field{year}{1992}
+    \endentry
+    \entry{wang2005how}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=8654ac1693c7a0253e3fdaaa40942110}{%
+           family={Wang},
+           familyi={W\bibinitperiod},
+           given={Xiaoyun},
+           giveni={X\bibinitperiod}}}%
+        {{hash=2e2c3eb46f6f59592bab0cad2786b13e}{%
+           family={Yu},
+           familyi={Y\bibinitperiod},
+           given={Hongbo},
+           giveni={H\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{701dbbe36f4b9dd69a0d5b5ee9496aca}
+      \strng{fullhash}{701dbbe36f4b9dd69a0d5b5ee9496aca}
+      \strng{fullhashraw}{701dbbe36f4b9dd69a0d5b5ee9496aca}
+      \strng{bibnamehash}{701dbbe36f4b9dd69a0d5b5ee9496aca}
+      \strng{authorbibnamehash}{701dbbe36f4b9dd69a0d5b5ee9496aca}
+      \strng{authornamehash}{701dbbe36f4b9dd69a0d5b5ee9496aca}
+      \strng{authorfullhash}{701dbbe36f4b9dd69a0d5b5ee9496aca}
+      \strng{authorfullhashraw}{701dbbe36f4b9dd69a0d5b5ee9496aca}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Advances in Cryptology--EUROCRYPT 2005}
+      \field{title}{How to break MD5 and other hash functions}
+      \field{year}{2005}
+      \field{pages}{19\bibrangedash 35}
+      \range{pages}{17}
+    \endentry
+    \entry{daemen2002design}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=ce9c20302c5a545e289c41661ac58c43}{%
+           family={Daemen},
+           familyi={D\bibinitperiod},
+           given={Joan},
+           giveni={J\bibinitperiod}}}%
+        {{hash=d2e51b6dbeb039e27ea5d1a6f5d63302}{%
+           family={Rijmen},
+           familyi={R\bibinitperiod},
+           given={Vincent},
+           giveni={V\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{3967038944da1152e0568c52ebc551ab}
+      \strng{fullhash}{3967038944da1152e0568c52ebc551ab}
+      \strng{fullhashraw}{3967038944da1152e0568c52ebc551ab}
+      \strng{bibnamehash}{3967038944da1152e0568c52ebc551ab}
+      \strng{authorbibnamehash}{3967038944da1152e0568c52ebc551ab}
+      \strng{authornamehash}{3967038944da1152e0568c52ebc551ab}
+      \strng{authorfullhash}{3967038944da1152e0568c52ebc551ab}
+      \strng{authorfullhashraw}{3967038944da1152e0568c52ebc551ab}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{The Design of Rijndael: AES--The Advanced Encryption Standard}
+      \field{year}{2002}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
