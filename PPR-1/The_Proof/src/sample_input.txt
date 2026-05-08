@@ -1,0 +1,9 @@
+This is a sample text file for testing the DWM2 text steganography module.
+
+The watermark will be hidden inside this file using XOR encryption.
+The hidden data is appended as an HTML comment at the end of the file,
+making it invisible to casual readers while remaining extractable with the correct password.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.

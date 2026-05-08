@@ -53,7 +53,7 @@ public class VideoSteganography {
                     "-i", input.getAbsolutePath(),
                     "-vf", "select=eq(n\\,0)",
                     "-vframes", "1",
-                    "-pix_fmt", "bgr24",
+                    "-pix_fmt", "rgb24",
                     frameFile.getAbsolutePath());
 
             if (!frameFile.exists()) {
@@ -82,12 +82,12 @@ public class VideoSteganography {
                     "-i", input.getAbsolutePath(),
                     "-i", frameFile.getAbsolutePath(),
                     "-filter_complex",
-                    "[0:v]format=bgr24[base];[base][1:v]overlay=enable='eq(n\\,0)'[v]",
+                    "[0:v]format=rgb24[base];[base][1:v]overlay=enable='eq(n\\,0)':format=rgb[v]",
                     "-map", "[v]",
                     "-map", "0:a?",
                     "-c:v", "ffv1",
                     "-level", "3",
-                    "-pix_fmt", "bgr24",
+                    "-pix_fmt", "rgb24",
                     "-c:a", "copy",
                     output.getAbsolutePath());
 
@@ -118,7 +118,7 @@ public class VideoSteganography {
                     "-i", video.getAbsolutePath(),
                     "-vf", "select=eq(n\\,0)",
                     "-vframes", "1",
-                    "-pix_fmt", "bgr24",
+                    "-pix_fmt", "rgb24",
                     frameFile.getAbsolutePath());
 
             BufferedImage frame = ImageIO.read(frameFile);

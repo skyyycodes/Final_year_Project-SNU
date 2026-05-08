@@ -10,18 +10,38 @@ import java.time.format.DateTimeFormatter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import javax.imageio.ImageIO;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.nio.charset.StandardCharsets;
+import javax.sound.sampled.*;
 
 public class DWM2 extends JFrame {
     private JTextField watermarkField;
     private JPasswordField passwordField;
     private JTextArea logArea;
     private JButton embedButton, extractButton, loadImageButton, saveImageButton;
-    private JLabel imageLabel, statusLabel, timestampLabel;
+    private JButton saveAudioButton, saveTextButton, saveVideoButton;
+    private JLabel imageLabel, watermarkedImageLabel, statusLabel, timestampLabel;
     private BufferedImage originalImage, watermarkedImage;
     private File currentImageFile;
     private File currentAudioFile;
     private File currentTextFile;
     private File currentVideoFile;
+    private File currentAudioOutput;
+    private File currentTextOutput;
+    private File currentVideoOutput;
+
+    private CardLayout leftCardLayout, rightCardLayout;
+    private JPanel leftCardPanel, rightCardPanel;
+    private Clip originalAudioClip, watermarkedAudioClip;
+    private JLabel originalAudioNameLabel, watermarkedAudioNameLabel;
+    private JTextArea originalTextArea, watermarkedTextArea;
+    private JLabel originalVideoNameLabel, watermarkedVideoNameLabel;
+
+    private static final String CARD_IMAGE = "IMAGE";
+    private static final String CARD_AUDIO = "AUDIO";
+    private static final String CARD_TEXT  = "TEXT";
+    private static final String CARD_VIDEO = "VIDEO";
 
     public DWM2() {
         initializeGUI();
@@ -95,17 +115,157 @@ public class DWM2 extends JFrame {
 
     private JPanel createImagePanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(new TitledBorder("Image Preview (256x256 BMP)"));
+        panel.setBorder(new TitledBorder("Preview"));
+
+        // ---- LEFT (original) ----
+        leftCardLayout = new CardLayout();
+        leftCardPanel  = new JPanel(leftCardLayout);
 
         imageLabel = new JLabel("No image loaded", SwingConstants.CENTER);
-        imageLabel.setPreferredSize(new Dimension(280, 280));
         imageLabel.setBorder(BorderFactory.createLoweredBevelBorder());
-        panel.add(imageLabel, BorderLayout.CENTER);
+        leftCardPanel.add(imageLabel, CARD_IMAGE);
+        leftCardPanel.add(buildAudioCard(true),  CARD_AUDIO);
+        leftCardPanel.add(buildTextCard(true),   CARD_TEXT);
+        leftCardPanel.add(buildVideoCard(true),  CARD_VIDEO);
 
+        JPanel leftOuter = new JPanel(new BorderLayout());
+        leftOuter.setBorder(new TitledBorder("Original"));
+        leftOuter.add(leftCardPanel, BorderLayout.CENTER);
+
+        // ---- RIGHT (watermarked) ----
+        rightCardLayout = new CardLayout();
+        rightCardPanel  = new JPanel(rightCardLayout);
+
+        watermarkedImageLabel = new JLabel("No watermark applied", SwingConstants.CENTER);
+        watermarkedImageLabel.setBorder(BorderFactory.createLoweredBevelBorder());
+        rightCardPanel.add(watermarkedImageLabel, CARD_IMAGE);
+        rightCardPanel.add(buildAudioCard(false),  CARD_AUDIO);
+        rightCardPanel.add(buildTextCard(false),   CARD_TEXT);
+        rightCardPanel.add(buildVideoCard(false),  CARD_VIDEO);
+
+        JPanel rightOuter = new JPanel(new BorderLayout());
+        rightOuter.setBorder(new TitledBorder("Watermarked"));
+        rightOuter.add(rightCardPanel, BorderLayout.CENTER);
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftOuter, rightOuter);
+        splitPane.setResizeWeight(0.5);
+        splitPane.setContinuousLayout(true);
+        panel.add(splitPane, BorderLayout.CENTER);
+
+        JPanel southPanel = new JPanel(new BorderLayout());
         statusLabel = new JLabel("Status: Ready");
-        panel.add(statusLabel, BorderLayout.SOUTH);
+        southPanel.add(statusLabel, BorderLayout.CENTER);
 
+        JButton resetButton = new JButton("Reset");
+        resetButton.setBackground(new Color(180, 0, 0));
+        resetButton.setForeground(Color.WHITE);
+        resetButton.addActionListener(e -> resetImages());
+        southPanel.add(resetButton, BorderLayout.EAST);
+
+        panel.add(southPanel, BorderLayout.SOUTH);
         return panel;
+    }
+
+    private JPanel buildAudioCard(boolean isOriginal) {
+        JPanel p = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel nameLbl = new JLabel(isOriginal ? "No audio loaded" : "No audio", SwingConstants.CENTER);
+        nameLbl.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        if (isOriginal) originalAudioNameLabel = nameLbl;
+        else            watermarkedAudioNameLabel = nameLbl;
+        p.add(nameLbl, gbc);
+
+        gbc.gridy = 1; gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE;
+        JButton playBtn = new JButton("▶  Play");
+        JButton stopBtn = new JButton("■  Stop");
+        playBtn.addActionListener(e -> playAudio(isOriginal));
+        stopBtn.addActionListener(e -> stopAudio(isOriginal));
+        p.add(playBtn, gbc);
+        gbc.gridx = 1;
+        p.add(stopBtn, gbc);
+        return p;
+    }
+
+    private JPanel buildTextCard(boolean isOriginal) {
+        JTextArea ta = new JTextArea();
+        ta.setEditable(false);
+        ta.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        ta.setLineWrap(true);
+        ta.setWrapStyleWord(true);
+        if (isOriginal) originalTextArea = ta;
+        else            watermarkedTextArea = ta;
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(new JScrollPane(ta), BorderLayout.CENTER);
+        return p;
+    }
+
+    private JPanel buildVideoCard(boolean isOriginal) {
+        JPanel p = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel nameLbl = new JLabel(isOriginal ? "No video loaded" : "No video", SwingConstants.CENTER);
+        nameLbl.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        if (isOriginal) originalVideoNameLabel = nameLbl;
+        else            watermarkedVideoNameLabel = nameLbl;
+        p.add(nameLbl, gbc);
+
+        gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE;
+        JButton openBtn = new JButton("▶  Open in Player");
+        openBtn.addActionListener(e -> openVideo(isOriginal));
+        p.add(openBtn, gbc);
+        return p;
+    }
+
+    private void playAudio(boolean isOriginal) {
+        try {
+            File f = isOriginal ? currentAudioFile : currentAudioOutput;
+            if (f == null || !f.exists()) return;
+            Clip existing = isOriginal ? originalAudioClip : watermarkedAudioClip;
+            if (existing != null) { existing.stop(); existing.close(); }
+            AudioInputStream ais = AudioSystem.getAudioInputStream(f);
+            Clip clip = AudioSystem.getClip();
+            clip.open(ais);
+            clip.start();
+            if (isOriginal) originalAudioClip = clip;
+            else            watermarkedAudioClip = clip;
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error playing audio: " + ex.getMessage());
+        }
+    }
+
+    private void stopAudio(boolean isOriginal) {
+        Clip clip = isOriginal ? originalAudioClip : watermarkedAudioClip;
+        if (clip != null && clip.isRunning()) clip.stop();
+    }
+
+    private void openVideo(boolean isOriginal) {
+        File f = isOriginal ? currentVideoFile : currentVideoOutput;
+        if (f == null || !f.exists()) {
+            JOptionPane.showMessageDialog(this, "No video file available.");
+            return;
+        }
+        try {
+            // ffplay supports all codecs including FFV1/MKV — use it if available
+            new ProcessBuilder("ffplay", "-autoexit", "-window_title",
+                    (isOriginal ? "Original: " : "Watermarked: ") + f.getName(),
+                    f.getAbsolutePath())
+                    .redirectErrorStream(true)
+                    .start();
+        } catch (IOException ex) {
+            // ffplay not found — fall back to system default player
+            try {
+                Desktop.getDesktop().open(f);
+            } catch (IOException ex2) {
+                JOptionPane.showMessageDialog(this, "Cannot open video: " + ex2.getMessage());
+            }
+        }
     }
 
     private JPanel createLogPanel() {
@@ -173,22 +333,29 @@ public class DWM2 extends JFrame {
         JButton loadAudioButton = new JButton("Load Audio");
         JButton embedAudioButton = new JButton("Embed Audio");
         JButton extractAudioButton = new JButton("Extract Audio");
+        saveAudioButton = new JButton("Save Audio");
 
         loadAudioButton.addActionListener(this::loadAudio);
         embedAudioButton.addActionListener(this::embedAudio);
         extractAudioButton.addActionListener(this::extractAudio);
+        saveAudioButton.addActionListener(this::saveAudio);
+
+        saveAudioButton.setEnabled(false);
 
         loadAudioButton.setBackground(new Color(0,120,215));
         embedAudioButton.setBackground(new Color(0,153,51));
         extractAudioButton.setBackground(new Color(255,140,0));
+        saveAudioButton.setBackground(new Color(150,0,200));
 
         loadAudioButton.setForeground(Color.WHITE);
         embedAudioButton.setForeground(Color.WHITE);
         extractAudioButton.setForeground(Color.WHITE);
+        saveAudioButton.setForeground(Color.WHITE);
 
         audioPanel.add(loadAudioButton);
         audioPanel.add(embedAudioButton);
         audioPanel.add(extractAudioButton);
+        audioPanel.add(saveAudioButton);
 
         mainPanel.add(imagePanel);
         mainPanel.add(audioPanel);
@@ -198,14 +365,21 @@ JPanel textPanel = new JPanel(new FlowLayout());
 JButton loadTextButton = new JButton("Load Text");
 JButton embedTextButton = new JButton("Embed Text");
 JButton extractTextButton = new JButton("Extract Text");
+saveTextButton = new JButton("Save Text");
 
 loadTextButton.addActionListener(this::loadText);
 embedTextButton.addActionListener(this::embedText);
 extractTextButton.addActionListener(this::extractText);
+saveTextButton.addActionListener(this::saveText);
+
+saveTextButton.setEnabled(false);
+saveTextButton.setBackground(new Color(150,0,200));
+saveTextButton.setForeground(Color.WHITE);
 
 textPanel.add(loadTextButton);
 textPanel.add(embedTextButton);
 textPanel.add(extractTextButton);
+textPanel.add(saveTextButton);
 
 mainPanel.add(textPanel);
 
@@ -215,22 +389,29 @@ JPanel videoPanel = new JPanel(new FlowLayout());
 JButton loadVideoButton = new JButton("Load Video");
 JButton embedVideoButton = new JButton("Embed Video");
 JButton extractVideoButton = new JButton("Extract Video");
+saveVideoButton = new JButton("Save Video");
 
 loadVideoButton.addActionListener(this::loadVideo);
 embedVideoButton.addActionListener(this::embedVideo);
 extractVideoButton.addActionListener(this::extractVideo);
+saveVideoButton.addActionListener(this::saveVideo);
+
+saveVideoButton.setEnabled(false);
 
 loadVideoButton.setBackground(new Color(0,120,215));
 embedVideoButton.setBackground(new Color(0,153,51));
 extractVideoButton.setBackground(new Color(255,140,0));
+saveVideoButton.setBackground(new Color(150,0,200));
 
 loadVideoButton.setForeground(Color.WHITE);
 embedVideoButton.setForeground(Color.WHITE);
 extractVideoButton.setForeground(Color.WHITE);
+saveVideoButton.setForeground(Color.WHITE);
 
 videoPanel.add(loadVideoButton);
 videoPanel.add(embedVideoButton);
 videoPanel.add(extractVideoButton);
+videoPanel.add(saveVideoButton);
 
 mainPanel.add(videoPanel);
 
@@ -261,15 +442,12 @@ mainPanel.add(videoPanel);
                 }
 
                 // Display image
+leftCardLayout.show(leftCardPanel, CARD_IMAGE);
 ImageIcon icon = new ImageIcon(originalImage.getScaledInstance(256, 256, Image.SCALE_SMOOTH));
 imageLabel.setIcon(icon);
 imageLabel.setText("");
-
-// 🔥 FIX TRANSPARENCY / UI GLITCH
 imageLabel.revalidate();
 imageLabel.repaint();
-this.revalidate();
-this.repaint();
 
 embedButton.setEnabled(true);
 extractButton.setEnabled(true);
@@ -511,9 +689,10 @@ log("");
                     + "/256 pixels (" +
                     String.format("%.1f%%", ((chars.length + 1) * 100.0 / 256)) + ")");
 
-            // Update display
+            // Update display — show watermarked image on the right panel
             ImageIcon icon = new ImageIcon(watermarkedImage.getScaledInstance(256, 256, Image.SCALE_SMOOTH));
-            imageLabel.setIcon(icon);
+            watermarkedImageLabel.setIcon(icon);
+            watermarkedImageLabel.setText("");
 
             extractButton.setEnabled(true);
             saveImageButton.setEnabled(true);
@@ -698,6 +877,27 @@ log("");
         }
     }
 
+    private void resetImages() {
+        originalImage = null;
+        watermarkedImage = null;
+        currentImageFile = null;
+
+        imageLabel.setIcon(null);
+        imageLabel.setText("No image loaded");
+        watermarkedImageLabel.setIcon(null);
+        watermarkedImageLabel.setText("No watermark applied");
+
+        leftCardLayout.show(leftCardPanel, CARD_IMAGE);
+        rightCardLayout.show(rightCardPanel, CARD_IMAGE);
+
+        embedButton.setEnabled(false);
+        extractButton.setEnabled(false);
+        saveImageButton.setEnabled(false);
+
+        statusLabel.setText("Status: Ready");
+        log("=== IMAGES RESET ===");
+    }
+
     private void log(String message) {
     logArea.append(message + "\n");
     logArea.setCaretPosition(logArea.getDocument().getLength());
@@ -713,9 +913,10 @@ private void loadAudio(ActionEvent e) {
     if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 
         currentAudioFile = chooser.getSelectedFile();
+        originalAudioNameLabel.setText(currentAudioFile.getName());
+        leftCardLayout.show(leftCardPanel, CARD_AUDIO);
 
         statusLabel.setText("Audio loaded: " + currentAudioFile.getName());
-
         log("=== AUDIO FILE LOADED ===");
         log("File: " + currentAudioFile.getAbsolutePath());
     }
@@ -737,6 +938,10 @@ private void embedAudio(ActionEvent e) {
 
         AudioSteganography.hideText(currentAudioFile, output, text, key, this::log);
 
+        currentAudioOutput = output;
+        saveAudioButton.setEnabled(true);
+        watermarkedAudioNameLabel.setText(output.getName());
+        rightCardLayout.show(rightCardPanel, CARD_AUDIO);
         log("Audio message embedded successfully.");
         JOptionPane.showMessageDialog(this, "Audio watermark embedded!");
 
@@ -782,9 +987,13 @@ private void loadText(ActionEvent e) {
     if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 
         currentTextFile = chooser.getSelectedFile();
+        try {
+            originalTextArea.setText(new String(Files.readAllBytes(currentTextFile.toPath()), StandardCharsets.UTF_8));
+            originalTextArea.setCaretPosition(0);
+        } catch (IOException ex) { originalTextArea.setText("(could not read file)"); }
+        leftCardLayout.show(leftCardPanel, CARD_TEXT);
 
         statusLabel.setText("Text loaded: " + currentTextFile.getName());
-
         log("=== TEXT FILE LOADED ===");
         log("File: " + currentTextFile.getAbsolutePath());
     }
@@ -806,6 +1015,13 @@ private void embedText(ActionEvent e) {
 
         TextSteganography.hideText(currentTextFile, output, text, key, this::log);
 
+        currentTextOutput = output;
+        saveTextButton.setEnabled(true);
+        try {
+            watermarkedTextArea.setText(new String(Files.readAllBytes(output.toPath()), StandardCharsets.UTF_8));
+            watermarkedTextArea.setCaretPosition(0);
+        } catch (Exception ex2) { watermarkedTextArea.setText("(could not read output)"); }
+        rightCardLayout.show(rightCardPanel, CARD_TEXT);
         log("Text watermark embedded successfully.");
         JOptionPane.showMessageDialog(this, "Text watermark embedded!");
 
@@ -854,9 +1070,10 @@ private void loadVideo(ActionEvent e) {
     if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 
         currentVideoFile = chooser.getSelectedFile();
+        originalVideoNameLabel.setText(currentVideoFile.getName());
+        leftCardLayout.show(leftCardPanel, CARD_VIDEO);
 
         statusLabel.setText("Video loaded: " + currentVideoFile.getName());
-
         log("=== VIDEO FILE LOADED ===");
         log("File: " + currentVideoFile.getAbsolutePath());
     }
@@ -878,6 +1095,10 @@ private void embedVideo(ActionEvent e) {
 
         VideoSteganography.hideText(currentVideoFile, output, text, key, this::log);
 
+        currentVideoOutput = output;
+        saveVideoButton.setEnabled(true);
+        watermarkedVideoNameLabel.setText(output.getName());
+        rightCardLayout.show(rightCardPanel, CARD_VIDEO);
         log("Video message embedded successfully.");
         JOptionPane.showMessageDialog(this,
                 "Video watermark embedded!\nOutput: " + output.getAbsolutePath());
@@ -919,6 +1140,75 @@ private void extractVideo(ActionEvent e) {
         JOptionPane.showMessageDialog(this,
                 "Error extracting video message:\n" + ex.getMessage(),
                 "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
+
+/* ================= SAVE METHODS ================= */
+
+private void saveAudio(ActionEvent e) {
+    if (currentAudioOutput == null) {
+        JOptionPane.showMessageDialog(this, "No watermarked audio to save!");
+        return;
+    }
+    JFileChooser chooser = new JFileChooser();
+    chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("WAV Audio", "wav"));
+    chooser.setSelectedFile(new File("watermarked_audio.wav"));
+    if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+        try {
+            File dest = chooser.getSelectedFile();
+            if (!dest.getName().toLowerCase().endsWith(".wav"))
+                dest = new File(dest.getAbsolutePath() + ".wav");
+            Files.copy(currentAudioOutput.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            statusLabel.setText("Status: Watermarked audio saved");
+            log("Audio saved: " + dest.getAbsolutePath());
+            JOptionPane.showMessageDialog(this, "Watermarked audio saved successfully!");
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Error saving audio: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+}
+
+private void saveText(ActionEvent e) {
+    if (currentTextOutput == null) {
+        JOptionPane.showMessageDialog(this, "No watermarked text to save!");
+        return;
+    }
+    JFileChooser chooser = new JFileChooser();
+    chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Text Files", "txt"));
+    chooser.setSelectedFile(new File("stego_text.txt"));
+    if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+        try {
+            File dest = chooser.getSelectedFile();
+            if (!dest.getName().toLowerCase().endsWith(".txt"))
+                dest = new File(dest.getAbsolutePath() + ".txt");
+            Files.copy(currentTextOutput.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            statusLabel.setText("Status: Watermarked text saved");
+            log("Text saved: " + dest.getAbsolutePath());
+            JOptionPane.showMessageDialog(this, "Watermarked text saved successfully!");
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Error saving text: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+}
+
+private void saveVideo(ActionEvent e) {
+    if (currentVideoOutput == null) {
+        JOptionPane.showMessageDialog(this, "No watermarked video to save!");
+        return;
+    }
+    JFileChooser chooser = new JFileChooser();
+    chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Video Files", "mkv", "mp4", "avi"));
+    chooser.setSelectedFile(new File("watermarked_video.mkv"));
+    if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+        try {
+            File dest = chooser.getSelectedFile();
+            Files.copy(currentVideoOutput.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            statusLabel.setText("Status: Watermarked video saved");
+            log("Video saved: " + dest.getAbsolutePath());
+            JOptionPane.showMessageDialog(this, "Watermarked video saved successfully!");
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Error saving video: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
 
